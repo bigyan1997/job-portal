@@ -288,11 +288,12 @@ const Home = () => {
                 fontWeight: 500,
                 cursor: "pointer",
                 border:
-                  activeType === type.value ? "none" : "1px solid #E5E7EB",
+                  activeType === type.value
+                    ? "1px solid #0F1923"
+                    : "1px solid #E5E7EB",
                 background:
                   activeType === type.value ? "#0F1923" : "transparent",
                 color: activeType === type.value ? "#FFFFFF" : "#6B7280",
-                transition: "all 0.15s ease",
               }}
             >
               {type.label}
@@ -303,7 +304,12 @@ const Home = () => {
 
       {/* Job listings */}
       <div
-        style={{ maxWidth: "760px", margin: "0 auto", padding: "32px 24px" }}
+        style={{
+          maxWidth: "760px",
+          margin: "0 auto",
+          padding: "32px 24px",
+          minHeight: "600px",
+        }}
       >
         {/* Results header */}
         {!loading && (

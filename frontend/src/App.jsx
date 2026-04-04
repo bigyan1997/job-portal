@@ -10,6 +10,7 @@ import JobDetail from "./pages/JobDetail";
 import Apply from "./pages/Apply";
 import JobSeekerDashboard from "./pages/JobSeekerDashboard";
 import EmployerDashboard from "./pages/EmployerDashboard";
+import EmployerJobDetail from "./pages/EmployerJobDetail";
 import PostJob from "./pages/PostJob";
 import EditJob from "./pages/EditJob";
 import NotFound from "./pages/404";
@@ -78,6 +79,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["employer"]}>
               <EditJob />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employer/jobs/:id"
+          element={
+            <ProtectedRoute allowedRoles={["employer"]}>
+              <EmployerJobDetail />
             </ProtectedRoute>
           }
         />
