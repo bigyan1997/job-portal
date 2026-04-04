@@ -1,8 +1,0 @@
-[phases.setup]
-nixPkgs = ["python312", "python312Packages.pip", "gcc"]
-
-[phases.install]
-cmds = ["python3 -m pip install -r requirements.txt"]
-
-[start]
-cmd = "python3 manage.py migrate && gunicorn core.wsgi --log-file -"
