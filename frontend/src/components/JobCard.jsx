@@ -49,12 +49,10 @@ const JobCard = ({ job }) => {
         onMouseEnter={(e) => {
           e.currentTarget.style.border = "1px solid #BFDBFE";
           e.currentTarget.style.boxShadow = "0 4px 24px rgba(37,99,235,0.08)";
-          e.currentTarget.style.transform = "translateY(-1px)";
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.border = "1px solid #F3F4F6";
           e.currentTarget.style.boxShadow = "none";
-          e.currentTarget.style.transform = "translateY(0)";
         }}
       >
         <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>

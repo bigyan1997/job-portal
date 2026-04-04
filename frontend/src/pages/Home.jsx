@@ -25,8 +25,8 @@ const Home = () => {
   const [jobType, setJobType] = useState("");
   const [activeType, setActiveType] = useState("");
 
-  const fetchJobs = async () => {
-    setLoading(true);
+  const fetchJobs = async (showLoader = true) => {
+    if (showLoader) setLoading(true);
     try {
       const params = {};
       if (search) params.search = search;
@@ -41,7 +41,7 @@ const Home = () => {
   };
 
   useEffect(() => {
-    const delay = setTimeout(fetchJobs, 400);
+    const delay = setTimeout(() => fetchJobs(false), 400);
     return () => clearTimeout(delay);
   }, [search, jobType]);
 
