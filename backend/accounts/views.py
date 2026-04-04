@@ -52,12 +52,12 @@ class GoogleLoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        # React sends us the Google access token after user clicks "Sign in with Google"
         access_token = request.data.get('access_token')
+        role = request.data.get('role', 'jobseeker')  # ← get role from request
+        
         if not access_token:
             return Response({'error': 'Access token required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Ask Google who this token belongs to
         google_response = requests.get(
             'https://www.googleapis.com/oauth2/v3/userinfo',
             headers={'Authorization': f'Bearer {access_token}'}
@@ -71,10 +71,13 @@ class GoogleLoginView(APIView):
         full_name = google_data.get('name', '')
         avatar = google_data.get('picture', '')
 
-        # Get or create user
         user, created = User.objects.get_or_create(
             email=email,
-            defaults={'full_name': full_name, 'avatar': avatar}
+            defaults={
+                'full_name': full_name,
+                'avatar': avatar,
+                'role': role  # ← pass role
+            }
         )
 
         refresh = RefreshToken.for_user(user)
@@ -84,7 +87,7 @@ class GoogleLoginView(APIView):
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
             },
-            'created': created  # tells React if this is a new user
+            'created': created
         })
 
 
@@ -127,7 +130,7 @@ class ProfileUpdateView(APIView):
 
     def put(self, request):
         allowed_fields = [
-            'full_name', 'company_name' 'phone', 'bio', 'address',
+            'full_name', 'company_name', 'phone', 'bio', 'address',
             'city', 'state', 'country', 'linkedin', 'portfolio'
         ]
         for field in allowed_fields:

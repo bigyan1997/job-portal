@@ -10,7 +10,7 @@ const Register = () => {
 
   const [formData, setFormData] = useState({
     full_name: "",
-    company_nameL: "",
+    company_name: "",
     email: "",
     password: "",
     role: "jobseeker",
@@ -47,6 +47,7 @@ const Register = () => {
       try {
         const res = await api.post("/auth/google/", {
           access_token: tokenResponse.access_token,
+          role: formData.role, // ← send role
         });
         login(res.data.user, res.data.tokens);
         if (res.data.user.role === "employer") {
