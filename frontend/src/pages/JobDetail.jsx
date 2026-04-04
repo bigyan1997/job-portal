@@ -219,23 +219,11 @@ const JobDetail = () => {
 
             {/* Has resume — show analyse button */}
             {/* Has resume — show analyse button or paywall */}
+            {/* Has resume — show analyse button or paywall */}
             {user?.resume && !analysis && (
               <div className="text-center py-4">
-                <p className="text-2xl mb-2">🤖</p>
-                <p className="text-sm font-medium text-gray-700 mb-1">
-                  Ready to analyse your resume
-                </p>
-                <p className="text-xs text-gray-400 mb-4">
-                  Our AI will match your resume against this job and generate a
-                  cover letter
-                </p>
-
-                {analyseError && (
-                  <p className="text-xs text-red-500 mb-3">{analyseError}</p>
-                )}
-
-                {/* Paywall */}
-                {limitReached ? (
+                {/* Show paywall immediately if limit already reached */}
+                {!user?.is_pro && user?.ai_analyses_used >= 3 ? (
                   <div className="border border-blue-200 bg-blue-50 rounded-xl p-6 text-left">
                     <div className="text-center mb-4">
                       <p className="text-2xl mb-2">⚡</p>
@@ -247,8 +235,6 @@ const JobDetail = () => {
                         letters and match scores
                       </p>
                     </div>
-
-                    {/* Plan comparison */}
                     <div className="grid grid-cols-2 gap-3 mb-4">
                       <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
                         <p className="text-xs font-medium text-gray-500 mb-1">
@@ -265,7 +251,6 @@ const JobDetail = () => {
                         <p className="text-xs text-blue-200">unlimited</p>
                       </div>
                     </div>
-
                     <Link
                       to="/subscription"
                       className="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2"
@@ -277,45 +262,106 @@ const JobDetail = () => {
                     </p>
                   </div>
                 ) : (
-                  <button
-                    onClick={handleAnalyse}
-                    disabled={analysing}
-                    className="bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-2 mx-auto"
-                  >
-                    {analysing ? (
-                      <>
-                        <svg
-                          className="animate-spin h-4 w-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8v8z"
-                          />
-                        </svg>
-                        Analysing...
-                      </>
-                    ) : (
-                      <>
-                        🔍 Analyse my resume for this job
-                        {!user?.is_pro && (
-                          <span className="text-xs bg-blue-500 px-2 py-0.5 rounded-full">
-                            {3 - (user?.ai_analyses_used || 0)} left
-                          </span>
-                        )}
-                      </>
+                  <>
+                    <p className="text-2xl mb-2">🤖</p>
+                    <p className="text-sm font-medium text-gray-700 mb-1">
+                      Ready to analyse your resume
+                    </p>
+                    <p className="text-xs text-gray-400 mb-4">
+                      Our AI will match your resume against this job and
+                      generate a cover letter
+                    </p>
+
+                    {analyseError && (
+                      <p className="text-xs text-red-500 mb-3">
+                        {analyseError}
+                      </p>
                     )}
-                  </button>
+
+                    {limitReached ? (
+                      <div className="border border-blue-200 bg-blue-50 rounded-xl p-6 text-left">
+                        <div className="text-center mb-4">
+                          <p className="text-2xl mb-2">⚡</p>
+                          <h3 className="font-semibold text-gray-900 mb-1">
+                            You've used all 3 free analyses
+                          </h3>
+                          <p className="text-sm text-gray-500 mb-4">
+                            Upgrade to Pro for unlimited AI resume analyses
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                          <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+                            <p className="text-xs font-medium text-gray-500 mb-1">
+                              Free
+                            </p>
+                            <p className="text-lg font-bold text-gray-900">
+                              $0
+                            </p>
+                            <p className="text-xs text-gray-400">3 analyses</p>
+                          </div>
+                          <div className="bg-blue-600 rounded-lg p-3 text-center">
+                            <p className="text-xs font-medium text-blue-200 mb-1">
+                              Pro
+                            </p>
+                            <p className="text-lg font-bold text-white">
+                              $14.99
+                            </p>
+                            <p className="text-xs text-blue-200">unlimited</p>
+                          </div>
+                        </div>
+                        <Link
+                          to="/subscription"
+                          className="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2"
+                        >
+                          ⚡ Upgrade to Pro — $14.99/month
+                        </Link>
+                        <p className="text-xs text-gray-400 text-center mt-2">
+                          Cancel anytime · Secure payment via Stripe
+                        </p>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={handleAnalyse}
+                        disabled={analysing}
+                        className="bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-2 mx-auto"
+                      >
+                        {analysing ? (
+                          <>
+                            <svg
+                              className="animate-spin h-4 w-4"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              />
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8v8z"
+                              />
+                            </svg>
+                            Analysing...
+                          </>
+                        ) : (
+                          <>
+                            🔍 Analyse my resume for this job
+                            {!user?.is_pro && (
+                              <span className="text-xs bg-blue-500 px-2 py-0.5 rounded-full">
+                                {Math.max(0, 3 - (user?.ai_analyses_used || 0))}{" "}
+                                left
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             )}
