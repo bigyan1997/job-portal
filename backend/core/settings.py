@@ -134,3 +134,12 @@ STRIPE_PRO_PRICE_ID = os.getenv('STRIPE_PRO_PRICE_ID')
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Trust Railway's proxy
+CSRF_TRUSTED_ORIGINS = [
+    'https://happy-heart-production-6871.up.railway.app',
+    'http://localhost:5173',
+]
+
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
