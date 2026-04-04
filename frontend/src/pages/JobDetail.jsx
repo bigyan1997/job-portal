@@ -5,7 +5,7 @@ import api from "../api/axios";
 
 const JobDetail = () => {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const navigate = useNavigate();
 
   const [job, setJob] = useState(null);
@@ -55,10 +55,13 @@ const JobDetail = () => {
       const res = await api.post("/jobs/analyse/", { job_id: id });
       setAnalysis(res.data);
       setCoverLetter(res.data.cover_letter);
+
+      // update user context so analyses count decrements in real time
+      const updatedUser = await api.get("/auth/me/");
+      updateUser(updatedUser.data);
     } catch (err) {
       if (err.response?.status === 402) {
         setLimitReached(true);
-        // don't clear existing analysis — let them still apply
       } else {
         setAnalyseError(err.response?.data?.error || "Analysis failed");
       }
