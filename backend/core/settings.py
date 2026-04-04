@@ -17,6 +17,8 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
+    'daphne',
+    'channels',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
@@ -24,6 +26,7 @@ INSTALLED_APPS = [
     'social_django',
     'accounts',
     'jobs',
+    'messaging',
 ]
 
 MIDDLEWARE = [
@@ -143,3 +146,15 @@ CSRF_TRUSTED_ORIGINS = [
 
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Channel Configuration
+ASGI_APPLICATION = 'core.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [os.getenv('REDIS_URL', 'redis://localhost:6379')],
+        },
+    },
+}

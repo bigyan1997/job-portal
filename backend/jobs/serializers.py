@@ -4,12 +4,13 @@ from accounts.serializers import UserSerializer
 
 class JobSerializer(serializers.ModelSerializer):
     employer = UserSerializer(read_only=True)  # shows full employer info
+    employer_id = serializers.IntegerField(source='employer.id', read_only=True)
     application_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Job
         fields = [
-            'id', 'employer', 'title', 'company', 'location',
+            'id', 'employer', 'employer_id', 'title', 'company', 'location',
             'job_type', 'description', 'requirements',
             'salary_min', 'salary_max', 'status',
             'application_count', 'created_at'

@@ -13,6 +13,7 @@ import EmployerDashboard from "./pages/EmployerDashboard";
 import EmployerJobDetail from "./pages/EmployerJobDetail";
 import PostJob from "./pages/PostJob";
 import EditJob from "./pages/EditJob";
+import Messages from "./pages/Messages";
 import NotFound from "./pages/404";
 
 import Subscription from "./pages/Subscription";
@@ -87,6 +88,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["employer"]}>
               <EmployerJobDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/messages"
+          element={
+            <ProtectedRoute>
+              <Messages />
             </ProtectedRoute>
           }
         />

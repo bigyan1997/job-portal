@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
 
 const JOB_TYPES = [
@@ -12,12 +13,13 @@ const JOB_TYPES = [
 
 const PostJob = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     title: "",
-    company: "",
-    location: "",
+    company: user?.company_name || "",
+    location: user?.city ? `${user.city} ${user.state || ""}`.trim() : "",
     job_type: "full_time",
     description: "",
     requirements: "",
@@ -35,9 +37,7 @@ const PostJob = () => {
     setLoading(true);
     try {
       await api.post("/jobs/", formData);
-      navigate("/employer", {
-        state: { message: "Job posted successfully!" },
-      });
+      navigate("/employer", { state: { message: "Job posted successfully!" } });
     } catch (err) {
       setError(err.response?.data?.detail || "Failed to post job");
     } finally {
@@ -45,215 +45,476 @@ const PostJob = () => {
     }
   };
 
+  const inputStyle = {
+    width: "100%",
+    border: "1px solid #E5E7EB",
+    borderRadius: "10px",
+    padding: "11px 14px",
+    fontSize: "14px",
+    color: "#111827",
+    outline: "none",
+    background: "#fff",
+    boxSizing: "border-box",
+    transition: "border-color 0.15s",
+  };
+
+  const labelStyle = {
+    display: "block",
+    fontSize: "12px",
+    fontWeight: 600,
+    color: "#6B7280",
+    marginBottom: "6px",
+    letterSpacing: "0.04em",
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-6">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
+    <div style={{ minHeight: "100vh", background: "#F8F7F4" }}>
+      {/* Header */}
+      <div style={{ background: "#0F1923", padding: "40px 24px" }}>
+        <div style={{ maxWidth: "780px", margin: "0 auto" }}>
           <button
             onClick={() => navigate(-1)}
-            className="text-sm text-gray-500 hover:text-gray-700 mb-4 flex items-center gap-1"
+            style={{
+              color: "#64748B",
+              fontSize: "13px",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+              marginBottom: "16px",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+            }}
           >
             ← Back
           </button>
-          <h1 className="text-2xl font-bold text-gray-900">Post a new job</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Fill in the details below — our AI will use this to match and
-            analyze applicants
+          <h1
+            style={{
+              color: "#F1F5F9",
+              fontSize: "28px",
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              marginBottom: "8px",
+            }}
+          >
+            Post a new job
+          </h1>
+          <p style={{ color: "#64748B", fontSize: "14px" }}>
+            The more detail you provide, the better our AI can match and score
+            applicants
           </p>
         </div>
+      </div>
 
-        {/* Form */}
-        <div className="bg-white border border-gray-200 rounded-xl p-6">
-          {error && (
-            <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg mb-5 border border-red-200">
-              {error}
-            </div>
-          )}
+      {/* Content */}
+      <div
+        style={{ maxWidth: "780px", margin: "0 auto", padding: "32px 24px" }}
+      >
+        {error && (
+          <div
+            style={{
+              background: "#FEF2F2",
+              border: "1px solid #FECACA",
+              color: "#B91C1C",
+              padding: "12px 16px",
+              borderRadius: "10px",
+              marginBottom: "20px",
+              fontSize: "14px",
+            }}
+          >
+            {error}
+          </div>
+        )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Title */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Job Title <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                required
-                placeholder="e.g. Senior React Developer"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Company + Location */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Company <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="company"
-                  value={formData.company}
-                  onChange={handleChange}
-                  required
-                  placeholder="e.g. Acme Inc."
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Location <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleChange}
-                  required
-                  placeholder="e.g. Sydney NSW"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            {/* Job type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Job Type <span className="text-red-500">*</span>
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {JOB_TYPES.map((type) => (
-                  <button
-                    key={type.value}
-                    type="button"
-                    onClick={() =>
-                      setFormData({ ...formData, job_type: type.value })
-                    }
-                    className={`px-4 py-2 rounded-lg text-sm font-medium border transition ${
-                      formData.job_type === type.value
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    {type.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Salary */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Salary Range{" "}
-                <span className="text-gray-400 font-normal">(optional)</span>
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="number"
-                  name="salary_min"
-                  value={formData.salary_min}
-                  onChange={handleChange}
-                  placeholder="Min e.g. 60000"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                  type="number"
-                  name="salary_max"
-                  value={formData.salary_max}
-                  onChange={handleChange}
-                  placeholder="Max e.g. 90000"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Job Description <span className="text-red-500">*</span>
-              </label>
-              <p className="text-xs text-gray-400 mb-1">
-                Describe the role, responsibilities, and your company culture
-              </p>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                required
-                rows={6}
-                placeholder="We are looking for a passionate developer to join our team..."
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              />
-            </div>
-
-            {/* Requirements */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Requirements <span className="text-red-500">*</span>
-              </label>
-              <p className="text-xs text-gray-400 mb-1">
-                List the skills, experience, and qualifications needed — the AI
-                uses this to score applicants
-              </p>
-              <textarea
-                name="requirements"
-                value={formData.requirements}
-                onChange={handleChange}
-                required
-                rows={6}
-                placeholder="- 3+ years of React experience&#10;- Strong knowledge of TypeScript&#10;- Experience with REST APIs"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              />
-            </div>
-
-            {/* AI notice */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 flex gap-3">
-              <span className="text-lg">🤖</span>
-              <p className="text-xs text-blue-600">
-                The more detailed your description and requirements, the better
-                our AI can match and score applicants against your job posting.
-              </p>
-            </div>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+        <form onSubmit={handleSubmit}>
+          {/* Basic info */}
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "16px",
+              border: "1px solid #F3F4F6",
+              padding: "28px",
+              marginBottom: "16px",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                marginBottom: "24px",
+              }}
             >
-              {loading ? (
-                <>
-                  <svg
-                    className="animate-spin h-4 w-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
+              <p
+                style={{
+                  color: "#111827",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Basic Information
+              </p>
+              <div style={{ flex: 1, height: "1px", background: "#E5E7EB" }} />
+            </div>
+
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+            >
+              {/* Title */}
+              <div>
+                <label style={labelStyle}>
+                  JOB TITLE <span style={{ color: "#EF4444" }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  required
+                  style={inputStyle}
+                  placeholder="e.g. Senior React Developer"
+                  onFocus={(e) => (e.target.style.borderColor = "#2563EB")}
+                  onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
+                />
+              </div>
+
+              {/* Company + Location */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "16px",
+                }}
+              >
+                <div>
+                  <label style={labelStyle}>
+                    COMPANY <span style={{ color: "#EF4444" }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="company"
+                    value={formData.company}
+                    onChange={handleChange}
+                    required
+                    style={inputStyle}
+                    placeholder="e.g. Acme Inc."
+                    onFocus={(e) => (e.target.style.borderColor = "#2563EB")}
+                    onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>
+                    LOCATION <span style={{ color: "#EF4444" }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleChange}
+                    required
+                    style={inputStyle}
+                    placeholder="e.g. Sydney NSW"
+                    onFocus={(e) => (e.target.style.borderColor = "#2563EB")}
+                    onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
+                  />
+                </div>
+              </div>
+
+              {/* Job type */}
+              <div>
+                <label style={labelStyle}>
+                  JOB TYPE <span style={{ color: "#EF4444" }}>*</span>
+                </label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                  {JOB_TYPES.map((type) => (
+                    <button
+                      key={type.value}
+                      type="button"
+                      onClick={() =>
+                        setFormData({ ...formData, job_type: type.value })
+                      }
+                      style={{
+                        padding: "8px 18px",
+                        borderRadius: "999px",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        border:
+                          formData.job_type === type.value
+                            ? "1px solid #0F1923"
+                            : "1px solid #E5E7EB",
+                        background:
+                          formData.job_type === type.value ? "#0F1923" : "#fff",
+                        color:
+                          formData.job_type === type.value ? "#fff" : "#6B7280",
+                        transition: "all 0.15s ease",
+                      }}
+                    >
+                      {type.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Salary */}
+              <div>
+                <label style={labelStyle}>
+                  SALARY RANGE{" "}
+                  <span style={{ color: "#9CA3AF", fontWeight: 400 }}>
+                    (optional)
+                  </span>
+                </label>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "12px",
+                  }}
+                >
+                  <div style={{ position: "relative" }}>
+                    <span
+                      style={{
+                        position: "absolute",
+                        left: "14px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "#9CA3AF",
+                        fontSize: "14px",
+                      }}
+                    >
+                      $
+                    </span>
+                    <input
+                      type="number"
+                      name="salary_min"
+                      value={formData.salary_min}
+                      onChange={handleChange}
+                      style={{ ...inputStyle, paddingLeft: "28px" }}
+                      placeholder="Min e.g. 60000"
+                      onFocus={(e) => (e.target.style.borderColor = "#2563EB")}
+                      onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
                     />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
+                  </div>
+                  <div style={{ position: "relative" }}>
+                    <span
+                      style={{
+                        position: "absolute",
+                        left: "14px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "#9CA3AF",
+                        fontSize: "14px",
+                      }}
+                    >
+                      $
+                    </span>
+                    <input
+                      type="number"
+                      name="salary_max"
+                      value={formData.salary_max}
+                      onChange={handleChange}
+                      style={{ ...inputStyle, paddingLeft: "28px" }}
+                      placeholder="Max e.g. 90000"
+                      onFocus={(e) => (e.target.style.borderColor = "#2563EB")}
+                      onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
                     />
-                  </svg>
-                  Posting...
-                </>
-              ) : (
-                "Post Job"
-              )}
-            </button>
-          </form>
-        </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "16px",
+              border: "1px solid #F3F4F6",
+              padding: "28px",
+              marginBottom: "16px",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                marginBottom: "24px",
+              }}
+            >
+              <p
+                style={{
+                  color: "#111827",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Job Description
+              </p>
+              <div style={{ flex: 1, height: "1px", background: "#E5E7EB" }} />
+            </div>
+
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+            >
+              <div>
+                <label style={labelStyle}>
+                  ABOUT THIS ROLE <span style={{ color: "#EF4444" }}>*</span>
+                </label>
+                <p
+                  style={{
+                    color: "#9CA3AF",
+                    fontSize: "12px",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Describe the role, responsibilities, and your company culture
+                </p>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  required
+                  rows={7}
+                  placeholder="We are looking for a passionate developer to join our team..."
+                  style={{
+                    ...inputStyle,
+                    resize: "vertical",
+                    lineHeight: 1.7,
+                    minHeight: "160px",
+                  }}
+                  onFocus={(e) => (e.target.style.borderColor = "#2563EB")}
+                  onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
+                />
+              </div>
+
+              <div>
+                <label style={labelStyle}>
+                  REQUIREMENTS <span style={{ color: "#EF4444" }}>*</span>
+                </label>
+                <p
+                  style={{
+                    color: "#9CA3AF",
+                    fontSize: "12px",
+                    marginBottom: "8px",
+                  }}
+                >
+                  List skills, experience and qualifications — our AI uses this
+                  to score applicants
+                </p>
+                <textarea
+                  name="requirements"
+                  value={formData.requirements}
+                  onChange={handleChange}
+                  required
+                  rows={7}
+                  placeholder={`- 3+ years of React experience\n- Strong knowledge of TypeScript\n- Experience with REST APIs`}
+                  style={{
+                    ...inputStyle,
+                    resize: "vertical",
+                    lineHeight: 1.7,
+                    minHeight: "160px",
+                  }}
+                  onFocus={(e) => (e.target.style.borderColor = "#2563EB")}
+                  onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* AI notice */}
+          <div
+            style={{
+              background: "linear-gradient(135deg, #EFF6FF, #DBEAFE)",
+              border: "1px solid #BFDBFE",
+              borderRadius: "12px",
+              padding: "16px 20px",
+              marginBottom: "20px",
+              display: "flex",
+              gap: "12px",
+              alignItems: "flex-start",
+            }}
+          >
+            <span style={{ fontSize: "20px", flexShrink: 0 }}>🤖</span>
+            <div>
+              <p
+                style={{
+                  color: "#1D4ED8",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  marginBottom: "4px",
+                }}
+              >
+                AI-powered applicant matching
+              </p>
+              <p
+                style={{ color: "#3B82F6", fontSize: "12px", lineHeight: 1.6 }}
+              >
+                The more detailed your description and requirements, the better
+                our AI can match, score and rank applicants against your job
+                posting.
+              </p>
+            </div>
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: "100%",
+              background: loading ? "#93C5FD" : "#111827",
+              color: "#fff",
+              border: "none",
+              borderRadius: "12px",
+              padding: "15px",
+              fontSize: "15px",
+              fontWeight: 600,
+              cursor: loading ? "not-allowed" : "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              transition: "opacity 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              if (!loading) e.currentTarget.style.opacity = "0.85";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = "1";
+            }}
+          >
+            {loading ? (
+              <>
+                <svg
+                  className="animate-spin h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8z"
+                  />
+                </svg>
+                Posting...
+              </>
+            ) : (
+              "Post Job →"
+            )}
+          </button>
+        </form>
       </div>
     </div>
   );

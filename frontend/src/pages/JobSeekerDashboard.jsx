@@ -4,10 +4,10 @@ import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
 
 const STATUS_STYLES = {
-  pending: "bg-yellow-100 text-yellow-700",
-  reviewed: "bg-blue-100 text-blue-700",
-  shortlisted: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-700",
+  pending: { bg: "#FEF9C3", text: "#A16207", label: "Pending" },
+  reviewed: { bg: "#DBEAFE", text: "#1D4ED8", label: "Reviewed" },
+  shortlisted: { bg: "#DCFCE7", text: "#15803D", label: "Shortlisted" },
+  rejected: { bg: "#FEE2E2", text: "#B91C1C", label: "Rejected" },
 };
 
 const JobSeekerDashboard = () => {
@@ -78,76 +78,269 @@ const JobSeekerDashboard = () => {
     }
   };
 
-  const toggleExpand = (id) => {
-    setExpandedId(expandedId === id ? null : id);
-  };
+  const toggleExpand = (id) => setExpandedId(expandedId === id ? null : id);
+
+  const shortlisted = applications.filter(
+    (a) => a.status === "shortlisted",
+  ).length;
+  const avgScore =
+    applications.filter((a) => a.match_score !== null).length > 0
+      ? Math.round(
+          applications
+            .filter((a) => a.match_score !== null)
+            .reduce((s, a) => s + a.match_score, 0) /
+            applications.filter((a) => a.match_score !== null).length,
+        )
+      : null;
 
   if (loading) {
     return (
-      <div className="max-w-3xl mx-auto px-6 py-10">
-        <div className="h-6 bg-gray-200 rounded w-1/3 mb-8 animate-pulse" />
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
+      <div
+        style={{ maxWidth: "760px", margin: "0 auto", padding: "40px 24px" }}
+      >
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            style={{
+              background: "#fff",
+              borderRadius: "16px",
+              padding: "24px",
+              marginBottom: "12px",
+              border: "1px solid #F3F4F6",
+            }}
+          >
             <div
-              key={i}
-              className="bg-white border border-gray-200 rounded-xl p-5 animate-pulse"
-            >
-              <div className="h-4 bg-gray-200 rounded w-1/2 mb-2" />
-              <div className="h-3 bg-gray-100 rounded w-1/3" />
-            </div>
-          ))}
-        </div>
+              style={{
+                height: "16px",
+                background: "#F3F4F6",
+                borderRadius: "4px",
+                width: "40%",
+                marginBottom: "8px",
+              }}
+            />
+            <div
+              style={{
+                height: "12px",
+                background: "#F9FAFB",
+                borderRadius: "4px",
+                width: "25%",
+              }}
+            />
+          </div>
+        ))}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-6">
-      <div className="max-w-3xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Dashboard</h1>
-            <p className="text-sm text-gray-500 mt-0.5">
-              {applications.length} application
-              {applications.length !== 1 ? "s" : ""} submitted
-            </p>
-          </div>
-          <Link
-            to="/"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+    <div style={{ minHeight: "100vh", background: "#F8F7F4" }}>
+      {/* Header */}
+      <div style={{ background: "#0F1923", padding: "40px 24px" }}>
+        <div style={{ maxWidth: "760px", margin: "0 auto" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: "16px",
+            }}
           >
-            Browse Jobs
-          </Link>
-        </div>
+            <div>
+              <p
+                style={{
+                  color: "#64748B",
+                  fontSize: "13px",
+                  marginBottom: "6px",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                MY DASHBOARD
+              </p>
+              <h1
+                style={{
+                  color: "#F1F5F9",
+                  fontSize: "28px",
+                  fontWeight: 700,
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                {user?.full_name || "Welcome back"}
+              </h1>
+            </div>
+            <Link
+              to="/"
+              style={{
+                background: "#2563EB",
+                color: "#fff",
+                padding: "12px 24px",
+                borderRadius: "10px",
+                fontWeight: 600,
+                fontSize: "14px",
+                textDecoration: "none",
+              }}
+            >
+              Browse Jobs
+            </Link>
+          </div>
 
+          {/* Stats */}
+          <div
+            style={{
+              display: "flex",
+              gap: "32px",
+              marginTop: "28px",
+              flexWrap: "wrap",
+            }}
+          >
+            {[
+              { value: applications.length, label: "Applications" },
+              { value: shortlisted, label: "Shortlisted" },
+              {
+                value: applications.filter((a) => a.status === "reviewed")
+                  .length,
+                label: "Reviewed",
+              },
+              {
+                value: avgScore !== null ? `${avgScore}%` : "—",
+                label: "Avg Match Score",
+              },
+            ].map((stat) => (
+              <div key={stat.label}>
+                <div
+                  style={{
+                    color: "#FFFFFF",
+                    fontSize: "26px",
+                    fontWeight: 700,
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  {stat.value}
+                </div>
+                <div
+                  style={{
+                    color: "#94A3B8",
+                    fontSize: "13px",
+                    marginTop: "2px",
+                  }}
+                >
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div
+        style={{ maxWidth: "760px", margin: "0 auto", padding: "32px 24px" }}
+      >
         {/* Success message */}
         {successMessage && (
-          <div className="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-lg mb-5 flex items-center gap-2">
+          <div
+            style={{
+              background: "#F0FDF4",
+              border: "1px solid #BBF7D0",
+              color: "#15803D",
+              padding: "12px 16px",
+              borderRadius: "10px",
+              marginBottom: "20px",
+              fontSize: "14px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
             ✅ {successMessage}
           </div>
         )}
 
-        {/* Resume section */}
-        <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6">
-          <h2 className="font-semibold text-gray-900 mb-1">My Resume</h2>
-          <p className="text-xs text-gray-400 mb-4">
-            Upload your resume once and use it to apply to any job and get AI
-            analysis
-          </p>
+        {/* Resume card */}
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: "16px",
+            border: "1px solid #F3F4F6",
+            padding: "24px",
+            marginBottom: "24px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              marginBottom: "16px",
+            }}
+          >
+            <p
+              style={{
+                color: "#111827",
+                fontSize: "14px",
+                fontWeight: 700,
+                whiteSpace: "nowrap",
+              }}
+            >
+              My Resume
+            </p>
+            <div style={{ flex: 1, height: "1px", background: "#E5E7EB" }} />
+          </div>
 
           {resumeSuccess && (
-            <div className="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-2 rounded-lg mb-3">
+            <div
+              style={{
+                background: "#F0FDF4",
+                border: "1px solid #BBF7D0",
+                color: "#15803D",
+                padding: "10px 14px",
+                borderRadius: "8px",
+                marginBottom: "12px",
+                fontSize: "13px",
+              }}
+            >
               ✅ {resumeSuccess}
             </div>
           )}
 
           {currentResume ? (
-            <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">📄</span>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                background: "#F9FAFB",
+                border: "1px solid #F3F4F6",
+                borderRadius: "12px",
+                padding: "14px 18px",
+              }}
+            >
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "12px" }}
+              >
+                <div
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "10px",
+                    background: "linear-gradient(135deg, #1E40AF, #3B82F6)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#fff",
+                    fontSize: "18px",
+                  }}
+                >
+                  📄
+                </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700">
+                  <p
+                    style={{
+                      color: "#111827",
+                      fontWeight: 600,
+                      fontSize: "14px",
+                      marginBottom: "2px",
+                    }}
+                  >
                     Resume uploaded
                   </p>
 
@@ -155,25 +348,44 @@ const JobSeekerDashboard = () => {
                     href={`http://localhost:8000/${currentResume}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-xs text-blue-600 hover:underline"
+                    style={{
+                      color: "#2563EB",
+                      fontSize: "12px",
+                      textDecoration: "none",
+                    }}
                   >
-                    View current resume
+                    View current resume →
                   </a>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <label className="text-xs text-blue-600 hover:underline cursor-pointer">
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "12px" }}
+              >
+                <label
+                  style={{
+                    color: "#2563EB",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    cursor: "pointer",
+                  }}
+                >
                   Replace
                   <input
                     type="file"
                     accept=".pdf"
                     onChange={handleResumeUpload}
-                    className="hidden"
+                    style={{ display: "none" }}
                   />
                 </label>
                 <button
                   onClick={handleResumeDelete}
-                  className="text-xs text-red-400 hover:text-red-600"
+                  style={{
+                    color: "#EF4444",
+                    fontSize: "13px",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
                 >
                   Delete
                 </button>
@@ -181,22 +393,30 @@ const JobSeekerDashboard = () => {
             </div>
           ) : (
             <label
-              className={`flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-8 cursor-pointer transition ${
-                resumeUploading
-                  ? "border-blue-300 bg-blue-50"
-                  : "border-gray-300 hover:border-blue-400 hover:bg-gray-50"
-              }`}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                border: `2px dashed ${resumeUploading ? "#3B82F6" : "#E5E7EB"}`,
+                borderRadius: "12px",
+                padding: "40px 24px",
+                cursor: "pointer",
+                background: resumeUploading ? "#EFF6FF" : "transparent",
+                transition: "all 0.15s ease",
+              }}
             >
               <input
                 type="file"
                 accept=".pdf"
                 onChange={handleResumeUpload}
-                className="hidden"
+                style={{ display: "none" }}
               />
               {resumeUploading ? (
                 <>
                   <svg
-                    className="animate-spin h-6 w-6 text-blue-500 mb-2"
+                    className="animate-spin h-8 w-8"
+                    style={{ color: "#3B82F6", marginBottom: "12px" }}
                     viewBox="0 0 24 24"
                     fill="none"
                   >
@@ -214,15 +434,44 @@ const JobSeekerDashboard = () => {
                       d="M4 12a8 8 0 018-8v8z"
                     />
                   </svg>
-                  <p className="text-sm text-blue-600">Uploading...</p>
+                  <p
+                    style={{
+                      color: "#3B82F6",
+                      fontSize: "14px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Uploading...
+                  </p>
                 </>
               ) : (
                 <>
-                  <span className="text-3xl mb-2">📄</span>
-                  <p className="text-sm font-medium text-gray-700">
+                  <div
+                    style={{
+                      width: "48px",
+                      height: "48px",
+                      borderRadius: "12px",
+                      background: "#F3F4F6",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "22px",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    📄
+                  </div>
+                  <p
+                    style={{
+                      color: "#111827",
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      marginBottom: "4px",
+                    }}
+                  >
                     Upload your resume
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p style={{ color: "#9CA3AF", fontSize: "12px" }}>
                     PDF only · Click to browse
                   </p>
                 </>
@@ -232,21 +481,66 @@ const JobSeekerDashboard = () => {
         </div>
 
         {/* Applications section */}
-        <h2 className="font-semibold text-gray-900 mb-4">My Applications</h2>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            marginBottom: "16px",
+          }}
+        >
+          <p
+            style={{
+              color: "#111827",
+              fontSize: "14px",
+              fontWeight: 700,
+              whiteSpace: "nowrap",
+            }}
+          >
+            My Applications
+          </p>
+          <div style={{ flex: 1, height: "1px", background: "#E5E7EB" }} />
+          <span
+            style={{ color: "#9CA3AF", fontSize: "12px", whiteSpace: "nowrap" }}
+          >
+            {applications.length} total
+          </span>
+        </div>
 
         {/* Empty state */}
         {applications.length === 0 && (
-          <div className="text-center py-16 bg-white border border-gray-200 rounded-xl">
-            <p className="text-4xl mb-3">📋</p>
-            <h3 className="text-gray-700 font-medium mb-1">
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "16px",
+              border: "1px solid #F3F4F6",
+              padding: "64px 24px",
+              textAlign: "center",
+            }}
+          >
+            <div style={{ fontSize: "48px", marginBottom: "16px" }}>📋</div>
+            <h3
+              style={{ color: "#111827", fontWeight: 600, marginBottom: "8px" }}
+            >
               No applications yet
             </h3>
-            <p className="text-gray-400 text-sm mb-4">
-              Start applying to jobs to see your applications here
+            <p
+              style={{
+                color: "#9CA3AF",
+                fontSize: "14px",
+                marginBottom: "20px",
+              }}
+            >
+              Start applying to jobs to track your applications here
             </p>
             <Link
               to="/"
-              className="text-blue-600 text-sm font-medium hover:underline"
+              style={{
+                color: "#2563EB",
+                fontSize: "14px",
+                fontWeight: 500,
+                textDecoration: "none",
+              }}
             >
               Browse open jobs →
             </Link>
@@ -254,203 +548,414 @@ const JobSeekerDashboard = () => {
         )}
 
         {/* Applications list */}
-        <div className="space-y-4">
-          {applications.map((app) => (
-            <div
-              key={app.id}
-              className="bg-white border border-gray-200 rounded-xl overflow-hidden"
-            >
-              {/* Application header */}
-              <div className="p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold text-gray-900">
-                        {app.job.title}
-                      </h3>
-                      <span
-                        className={`text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_STYLES[app.status]}`}
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          {applications.map((app) => {
+            const statusStyle = STATUS_STYLES[app.status];
+            const isExpanded = expandedId === app.id;
+
+            return (
+              <div
+                key={app.id}
+                style={{
+                  background: "#fff",
+                  borderRadius: "16px",
+                  border: "1px solid #F3F4F6",
+                  overflow: "hidden",
+                }}
+              >
+                <div style={{ padding: "20px" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      justifyContent: "space-between",
+                      gap: "16px",
+                    }}
+                  >
+                    {/* Job info */}
+                    <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          flexWrap: "wrap",
+                          marginBottom: "6px",
+                        }}
                       >
-                        {app.status.charAt(0).toUpperCase() +
-                          app.status.slice(1)}
-                      </span>
+                        <h3
+                          style={{
+                            color: "#111827",
+                            fontWeight: 700,
+                            fontSize: "15px",
+                          }}
+                        >
+                          {app.job.title}
+                        </h3>
+                        <span
+                          style={{
+                            background: statusStyle.bg,
+                            color: statusStyle.text,
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            padding: "3px 10px",
+                            borderRadius: "999px",
+                            letterSpacing: "0.03em",
+                          }}
+                        >
+                          {statusStyle.label}
+                        </span>
+                      </div>
+                      <p
+                        style={{
+                          color: "#6B7280",
+                          fontSize: "13px",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        🏢 {app.job.company} · 📍 {app.job.location}
+                      </p>
+                      <p style={{ color: "#9CA3AF", fontSize: "12px" }}>
+                        Applied{" "}
+                        {new Date(app.applied_at).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-500 mt-0.5">
-                      {app.job.company} · {app.job.location}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Applied{" "}
-                      {new Date(app.applied_at).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </p>
+
+                    {/* Match score */}
+                    {app.match_score !== null ? (
+                      <div
+                        style={{
+                          width: "60px",
+                          height: "60px",
+                          borderRadius: "50%",
+                          flexShrink: 0,
+                          border: `4px solid ${app.match_score >= 70 ? "#22C55E" : app.match_score >= 40 ? "#EAB308" : "#EF4444"}`,
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color:
+                            app.match_score >= 70
+                              ? "#15803D"
+                              : app.match_score >= 40
+                                ? "#A16207"
+                                : "#B91C1C",
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: "15px",
+                            fontWeight: 700,
+                            lineHeight: 1,
+                          }}
+                        >
+                          {app.match_score}%
+                        </span>
+                        <span
+                          style={{
+                            fontSize: "9px",
+                            lineHeight: 1,
+                            marginTop: "2px",
+                            color: "#9CA3AF",
+                          }}
+                        >
+                          match
+                        </span>
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          width: "60px",
+                          height: "60px",
+                          borderRadius: "50%",
+                          flexShrink: 0,
+                          border: "4px solid #E5E7EB",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#D1D5DB",
+                          fontSize: "10px",
+                          textAlign: "center",
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        AI
+                        <br />
+                        pending
+                      </div>
+                    )}
                   </div>
 
-                  {/* Match score circle */}
-                  {app.match_score !== null ? (
-                    <div
-                      className={`flex-shrink-0 w-16 h-16 rounded-full flex flex-col items-center justify-center border-4 ${
-                        app.match_score >= 70
-                          ? "border-green-400 text-green-600"
-                          : app.match_score >= 40
-                            ? "border-yellow-400 text-yellow-600"
-                            : "border-red-400 text-red-600"
-                      }`}
-                    >
-                      <span className="text-lg font-bold leading-none">
-                        {app.match_score}%
-                      </span>
-                      <span className="text-xs leading-none mt-0.5">match</span>
+                  {/* Match bar */}
+                  {app.match_score !== null && (
+                    <div style={{ marginTop: "14px" }}>
+                      <div
+                        style={{
+                          background: "#F3F4F6",
+                          borderRadius: "999px",
+                          height: "5px",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div
+                          style={{
+                            height: "100%",
+                            borderRadius: "999px",
+                            width: `${app.match_score}%`,
+                            background:
+                              app.match_score >= 70
+                                ? "#22C55E"
+                                : app.match_score >= 40
+                                  ? "#EAB308"
+                                  : "#EF4444",
+                          }}
+                        />
+                      </div>
                     </div>
-                  ) : (
-                    <div className="flex-shrink-0 w-16 h-16 rounded-full flex flex-col items-center justify-center border-4 border-gray-200 text-gray-300 text-xs text-center leading-tight px-1">
-                      AI pending
+                  )}
+
+                  {/* Actions */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "16px",
+                      marginTop: "14px",
+                      paddingTop: "14px",
+                      borderTop: "1px solid #F9FAFB",
+                    }}
+                  >
+                    {(app.cover_letter || app.match_score !== null) && (
+                      <button
+                        onClick={() => toggleExpand(app.id)}
+                        style={{
+                          color: "#2563EB",
+                          fontSize: "13px",
+                          fontWeight: 500,
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          padding: 0,
+                        }}
+                      >
+                        {isExpanded
+                          ? "▲ Hide details"
+                          : "▼ View AI insights & cover letter"}
+                      </button>
+                    )}
+                    <Link
+                      to={`/jobs/${app.job.id}`}
+                      style={{
+                        color: "#6B7280",
+                        fontSize: "13px",
+                        textDecoration: "none",
+                        marginLeft: "auto",
+                      }}
+                    >
+                      View job →
+                    </Link>
+                  </div>
+
+                  {/* AI pending */}
+                  {!app.cover_letter && app.match_score === null && (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        marginTop: "10px",
+                        color: "#9CA3AF",
+                        fontSize: "12px",
+                      }}
+                    >
+                      <svg
+                        className="animate-spin h-3 w-3"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v8z"
+                        />
+                      </svg>
+                      AI is analyzing your resume...
                     </div>
                   )}
                 </div>
 
-                {/* Expand button */}
-                {(app.cover_letter || app.match_score !== null) && (
-                  <button
-                    onClick={() => toggleExpand(app.id)}
-                    className="mt-3 text-sm text-blue-600 hover:underline flex items-center gap-1"
+                {/* Expanded details */}
+                {isExpanded && (
+                  <div
+                    style={{
+                      borderTop: "1px solid #F3F4F6",
+                      padding: "20px",
+                      background: "#FAFAFA",
+                    }}
                   >
-                    {expandedId === app.id
-                      ? "▲ Hide details"
-                      : "▼ View AI insights & cover letter"}
-                  </button>
-                )}
+                    {/* Skills grid */}
+                    {(app.matching_skills || app.missing_skills) && (
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "1fr 1fr",
+                          gap: "20px",
+                          marginBottom: "20px",
+                        }}
+                      >
+                        {app.matching_skills && (
+                          <div>
+                            <p
+                              style={{
+                                color: "#6B7280",
+                                fontSize: "11px",
+                                fontWeight: 600,
+                                marginBottom: "8px",
+                                letterSpacing: "0.05em",
+                              }}
+                            >
+                              ✅ SKILLS YOU HAVE
+                            </p>
+                            <div
+                              style={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: "4px",
+                              }}
+                            >
+                              {app.matching_skills
+                                .split(", ")
+                                .map((skill, i) => (
+                                  <span
+                                    key={i}
+                                    style={{
+                                      background: "#DCFCE7",
+                                      color: "#15803D",
+                                      fontSize: "11px",
+                                      padding: "3px 10px",
+                                      borderRadius: "999px",
+                                    }}
+                                  >
+                                    {skill}
+                                  </span>
+                                ))}
+                            </div>
+                          </div>
+                        )}
+                        {app.missing_skills && (
+                          <div>
+                            <p
+                              style={{
+                                color: "#6B7280",
+                                fontSize: "11px",
+                                fontWeight: 600,
+                                marginBottom: "8px",
+                                letterSpacing: "0.05em",
+                              }}
+                            >
+                              ❌ SKILLS TO DEVELOP
+                            </p>
+                            <div
+                              style={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: "4px",
+                              }}
+                            >
+                              {app.missing_skills
+                                .split(", ")
+                                .map((skill, i) => (
+                                  <span
+                                    key={i}
+                                    style={{
+                                      background: "#FEE2E2",
+                                      color: "#B91C1C",
+                                      fontSize: "11px",
+                                      padding: "3px 10px",
+                                      borderRadius: "999px",
+                                    }}
+                                  >
+                                    {skill}
+                                  </span>
+                                ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
-                {/* AI pending notice */}
-                {!app.cover_letter && app.match_score === null && (
-                  <div className="mt-3 flex items-center gap-2 text-xs text-gray-400">
-                    <svg
-                      className="animate-spin h-3 w-3"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v8z"
-                      />
-                    </svg>
-                    AI is analyzing your resume...
+                    {/* Cover letter */}
+                    {app.cover_letter && (
+                      <div>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            marginBottom: "10px",
+                          }}
+                        >
+                          <p
+                            style={{
+                              color: "#6B7280",
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              letterSpacing: "0.05em",
+                            }}
+                          >
+                            🤖 AI GENERATED COVER LETTER
+                          </p>
+                          <button
+                            onClick={() =>
+                              navigator.clipboard.writeText(app.cover_letter)
+                            }
+                            style={{
+                              color: "#2563EB",
+                              fontSize: "12px",
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Copy
+                          </button>
+                        </div>
+                        <div
+                          style={{
+                            background: "#fff",
+                            border: "1px solid #F3F4F6",
+                            borderRadius: "12px",
+                            padding: "16px",
+                            fontSize: "13px",
+                            color: "#6B7280",
+                            lineHeight: 1.8,
+                            whiteSpace: "pre-line",
+                            maxHeight: "240px",
+                            overflowY: "auto",
+                          }}
+                        >
+                          {app.cover_letter}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-
-              {/* Expanded AI details */}
-              {expandedId === app.id && (
-                <div className="border-t border-gray-100 p-5 bg-gray-50 space-y-5">
-                  {/* Match score bar */}
-                  {app.match_score !== null && (
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="text-sm font-semibold text-gray-800">
-                          Match Score
-                        </h4>
-                        <span className="text-sm font-bold text-gray-700">
-                          {app.match_score}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2.5">
-                        <div
-                          className={`h-2.5 rounded-full transition-all ${
-                            app.match_score >= 70
-                              ? "bg-green-500"
-                              : app.match_score >= 40
-                                ? "bg-yellow-500"
-                                : "bg-red-500"
-                          }`}
-                          style={{ width: `${app.match_score}%` }}
-                        />
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {app.match_score >= 70
-                          ? "Strong match — you meet most requirements"
-                          : app.match_score >= 40
-                            ? "Moderate match — you meet some requirements"
-                            : "Low match — consider upskilling before applying"}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Skills grid */}
-                  {(app.matching_skills || app.missing_skills) && (
-                    <div className="grid grid-cols-2 gap-4">
-                      {app.matching_skills && (
-                        <div>
-                          <h4 className="text-sm font-semibold text-gray-800 mb-2">
-                            ✅ Skills you have
-                          </h4>
-                          <div className="flex flex-wrap gap-1.5">
-                            {app.matching_skills.split(", ").map((skill, i) => (
-                              <span
-                                key={i}
-                                className="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full"
-                              >
-                                {skill}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {app.missing_skills && (
-                        <div>
-                          <h4 className="text-sm font-semibold text-gray-800 mb-2">
-                            ❌ Skills to develop
-                          </h4>
-                          <div className="flex flex-wrap gap-1.5">
-                            {app.missing_skills.split(", ").map((skill, i) => (
-                              <span
-                                key={i}
-                                className="text-xs bg-red-100 text-red-700 px-2.5 py-1 rounded-full"
-                              >
-                                {skill}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Cover letter */}
-                  {app.cover_letter && (
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-sm font-semibold text-gray-800">
-                          🤖 AI Generated Cover Letter
-                        </h4>
-                        <button
-                          onClick={() =>
-                            navigator.clipboard.writeText(app.cover_letter)
-                          }
-                          className="text-xs text-blue-600 hover:underline"
-                        >
-                          Copy
-                        </button>
-                      </div>
-                      <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-600 leading-relaxed whitespace-pre-line max-h-64 overflow-y-auto">
-                        {app.cover_letter}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

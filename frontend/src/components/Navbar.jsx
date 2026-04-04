@@ -101,6 +101,7 @@ const Navbar = () => {
         {user?.role === "jobseeker" && (
           <>
             {navLink("/dashboard", "My Applications")}
+            {navLink("/messages", "Messages")}
             {navLink("/profile", "Profile")}
           </>
         )}
@@ -108,6 +109,7 @@ const Navbar = () => {
         {user?.role === "employer" && (
           <>
             {navLink("/employer", "My Jobs")}
+            {navLink("/messages", "Messages")}
             {navLink("/profile", "Profile")}
           </>
         )}
@@ -297,6 +299,10 @@ const Navbar = () => {
                       label: "📋 My Applications",
                     },
                     user?.role === "jobseeker" && {
+                      to: "/messages",
+                      label: "💬 Messages",
+                    }, // ← add
+                    user?.role === "jobseeker" && {
                       to: "/subscription",
                       label: user?.is_pro ? "⚡ Pro Plan" : "⚡ Upgrade to Pro",
                     },
@@ -304,6 +310,10 @@ const Navbar = () => {
                       to: "/employer",
                       label: "💼 My Jobs",
                     },
+                    user?.role === "employer" && {
+                      to: "/messages",
+                      label: "💬 Messages",
+                    }, // ← add
                     user?.role === "employer" && {
                       to: "/employer/post",
                       label: "➕ Post a Job",

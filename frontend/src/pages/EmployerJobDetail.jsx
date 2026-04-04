@@ -452,6 +452,34 @@ const EmployerJobDetail = () => {
                             <option value="shortlisted">Shortlisted</option>
                             <option value="rejected">Rejected</option>
                           </select>
+
+                          <button
+                            onClick={async () => {
+                              const res = await api.post(
+                                "/messaging/conversations/start/",
+                                {
+                                  user_id: app.applicant.id,
+                                  job_id: id,
+                                },
+                              );
+                              navigate(
+                                `/messages?conv=${res.data.conversation_id}`,
+                              );
+                            }}
+                            style={{
+                              background: "#EFF6FF",
+                              color: "#2563EB",
+                              border: "none",
+                              borderRadius: "8px",
+                              padding: "6px 12px",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            💬 Message
+                          </button>
                         </div>
                       </div>
 
