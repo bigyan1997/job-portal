@@ -43,6 +43,10 @@ CORS_ALLOWED_ORIGINS = os.getenv(
     'http://localhost:5173'
 ).split(',')
 
+# Allow all Railway subdomains
+if os.getenv('RAILWAY_STATIC_URL'):
+    ALLOWED_HOSTS.append(os.getenv('RAILWAY_STATIC_URL'))
+
 ROOT_URLCONF = 'core.urls'
 
 TEMPLATES = [
