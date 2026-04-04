@@ -2,11 +2,17 @@ import { Link } from "react-router-dom";
 
 const JobCard = ({ job }) => {
   const jobTypeColors = {
-    full_time: "bg-green-100 text-green-700",
-    part_time: "bg-yellow-100 text-yellow-700",
-    contract: "bg-purple-100 text-purple-700",
-    internship: "bg-blue-100 text-blue-700",
-    remote: "bg-teal-100 text-teal-700",
+    full_time: { bg: "#DCFCE7", text: "#15803D", label: "Full Time" },
+    part_time: { bg: "#FEF9C3", text: "#A16207", label: "Part Time" },
+    contract: { bg: "#EDE9FE", text: "#6D28D9", label: "Contract" },
+    internship: { bg: "#DBEAFE", text: "#1D4ED8", label: "Internship" },
+    remote: { bg: "#CCFBF1", text: "#0F766E", label: "Remote" },
+  };
+
+  const typeStyle = jobTypeColors[job.job_type] || {
+    bg: "#F3F4F6",
+    text: "#374151",
+    label: job.job_type,
   };
 
   const formatSalary = (min, max) => {
@@ -24,55 +30,188 @@ const JobCard = ({ job }) => {
     return `${Math.floor(diff / 86400)}d ago`;
   };
 
-  return (
-    <Link to={`/jobs/${job.id}`} className="block">
-      <div className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-blue-300 transition group">
-        {/* Top row */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition">
-              {job.title}
-            </h3>
-            <p className="text-sm text-gray-500 mt-0.5">{job.company}</p>
-          </div>
+  const salary = formatSalary(job.salary_min, job.salary_max);
 
+  return (
+    <Link
+      to={`/jobs/${job.id}`}
+      style={{ textDecoration: "none", display: "block" }}
+    >
+      <div
+        style={{
+          background: "#FFFFFF",
+          borderRadius: "16px",
+          padding: "24px",
+          border: "1px solid #F3F4F6",
+          transition: "all 0.2s ease",
+          cursor: "pointer",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.border = "1px solid #BFDBFE";
+          e.currentTarget.style.boxShadow = "0 4px 24px rgba(37,99,235,0.08)";
+          e.currentTarget.style.transform = "translateY(-1px)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.border = "1px solid #F3F4F6";
+          e.currentTarget.style.boxShadow = "none";
+          e.currentTarget.style.transform = "translateY(0)";
+        }}
+      >
+        <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
           {/* Company avatar */}
-          <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-sm flex-shrink-0">
+          <div
+            style={{
+              width: "48px",
+              height: "48px",
+              borderRadius: "12px",
+              background: "linear-gradient(135deg, #1E40AF, #3B82F6)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#FFFFFF",
+              fontWeight: 700,
+              fontSize: "18px",
+              flexShrink: 0,
+            }}
+          >
             {job.company[0].toUpperCase()}
           </div>
-        </div>
 
-        {/* Middle row */}
-        <div className="flex items-center gap-3 mt-3 flex-wrap">
-          <span
-            className={`text-xs px-2.5 py-1 rounded-full font-medium ${jobTypeColors[job.job_type]}`}
-          >
-            {job.job_type.replace("_", " ")}
-          </span>
-          <span className="text-xs text-gray-500 flex items-center gap-1">
-            📍 {job.location}
-          </span>
-          {formatSalary(job.salary_min, job.salary_max) && (
-            <span className="text-xs text-gray-500 flex items-center gap-1">
-              💰 {formatSalary(job.salary_min, job.salary_max)}
-            </span>
-          )}
-        </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Title + badge */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                gap: "12px",
+                flexWrap: "wrap",
+              }}
+            >
+              <div>
+                <h3
+                  style={{
+                    color: "#111827",
+                    fontWeight: 600,
+                    fontSize: "16px",
+                    marginBottom: "4px",
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {job.title}
+                </h3>
+                <p style={{ color: "#6B7280", fontSize: "14px" }}>
+                  {job.company}
+                </p>
+              </div>
 
-        {/* Description preview */}
-        <p className="text-sm text-gray-600 mt-3 line-clamp-2">
-          {job.description}
-        </p>
+              <span
+                style={{
+                  background: typeStyle.bg,
+                  color: typeStyle.text,
+                  fontSize: "12px",
+                  fontWeight: 500,
+                  padding: "4px 12px",
+                  borderRadius: "999px",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
+                }}
+              >
+                {typeStyle.label}
+              </span>
+            </div>
 
-        {/* Bottom row */}
-        <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
-          <span className="text-xs text-gray-400">
-            {timeAgo(job.created_at)}
-          </span>
-          <span className="text-xs text-gray-400">
-            {job.application_count} applicant
-            {job.application_count !== 1 ? "s" : ""}
-          </span>
+            {/* Meta row */}
+            <div
+              style={{
+                display: "flex",
+                gap: "20px",
+                marginTop: "12px",
+                flexWrap: "wrap",
+              }}
+            >
+              <span
+                style={{
+                  color: "#9CA3AF",
+                  fontSize: "13px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                📍 {job.location}
+              </span>
+              {salary && (
+                <span
+                  style={{
+                    color: "#9CA3AF",
+                    fontSize: "13px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                >
+                  💰 {salary}
+                </span>
+              )}
+              <span
+                style={{
+                  color: "#9CA3AF",
+                  fontSize: "13px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                👥 {job.application_count} applicant
+                {job.application_count !== 1 ? "s" : ""}
+              </span>
+            </div>
+
+            {/* Description preview */}
+            <p
+              style={{
+                color: "#6B7280",
+                fontSize: "13px",
+                marginTop: "12px",
+                lineHeight: 1.6,
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {job.description}
+            </p>
+
+            {/* Footer */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginTop: "16px",
+                paddingTop: "16px",
+                borderTop: "1px solid #F9FAFB",
+              }}
+            >
+              <span style={{ color: "#D1D5DB", fontSize: "12px" }}>
+                {timeAgo(job.created_at)}
+              </span>
+              <span
+                style={{
+                  color: "#2563EB",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                View job →
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </Link>
