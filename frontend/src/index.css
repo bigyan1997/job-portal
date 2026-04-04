@@ -3,3 +3,7 @@
 html {
   scrollbar-gutter: stable;
 }
+
+nav {
+  will-change: auto;
+}
