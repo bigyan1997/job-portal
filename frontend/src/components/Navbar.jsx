@@ -1,12 +1,32 @@
 import { useState, useCallback, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import api from "../api/axios";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchUnread = async () => {
+      try {
+        const res = await api.get("/messaging/unread/");
+        setUnreadCount(res.data.unread_count);
+      } catch {
+        // silently fail
+      }
+    };
+
+    fetchUnread();
+    // poll every 10 seconds
+    const interval = setInterval(fetchUnread, 10000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -15,6 +35,9 @@ const Navbar = () => {
 
   useEffect(() => {
     setMenuOpen(false);
+    if (location.pathname === "/messages") {
+      setUnreadCount(0);
+    }
   }, [location.pathname]);
 
   const isActive = useCallback(
@@ -101,7 +124,44 @@ const Navbar = () => {
         {user?.role === "jobseeker" && (
           <>
             {navLink("/dashboard", "My Applications")}
-            {navLink("/messages", "Messages")}
+            <Link
+              to="/messages"
+              style={{
+                color: isActive("/messages") ? "#111827" : "#6B7280",
+                fontSize: "14px",
+                fontWeight: isActive("/messages") ? 600 : 400,
+                textDecoration: "none",
+                padding: "6px 2px",
+                borderBottom: isActive("/messages")
+                  ? "2px solid #2563EB"
+                  : "2px solid transparent",
+                transition: "all 0.15s ease",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              Messages
+              {unreadCount > 0 && (
+                <span
+                  style={{
+                    background: "#EF4444",
+                    color: "#fff",
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    minWidth: "18px",
+                    height: "18px",
+                    borderRadius: "999px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "0 4px",
+                  }}
+                >
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </Link>
             {navLink("/profile", "Profile")}
           </>
         )}
@@ -109,7 +169,44 @@ const Navbar = () => {
         {user?.role === "employer" && (
           <>
             {navLink("/employer", "My Jobs")}
-            {navLink("/messages", "Messages")}
+            <Link
+              to="/messages"
+              style={{
+                color: isActive("/messages") ? "#111827" : "#6B7280",
+                fontSize: "14px",
+                fontWeight: isActive("/messages") ? 600 : 400,
+                textDecoration: "none",
+                padding: "6px 2px",
+                borderBottom: isActive("/messages")
+                  ? "2px solid #2563EB"
+                  : "2px solid transparent",
+                transition: "all 0.15s ease",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              Messages
+              {unreadCount > 0 && (
+                <span
+                  style={{
+                    background: "#EF4444",
+                    color: "#fff",
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    minWidth: "18px",
+                    height: "18px",
+                    borderRadius: "999px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "0 4px",
+                  }}
+                >
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </Link>
             {navLink("/profile", "Profile")}
           </>
         )}
