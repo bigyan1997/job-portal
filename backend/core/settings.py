@@ -158,11 +158,12 @@ STORAGES = {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# Keep this for django-cloudinary-storage compatibility
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
 
