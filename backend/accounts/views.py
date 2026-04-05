@@ -10,6 +10,7 @@ from django.contrib.auth import authenticate
 from .serializers import RegisterSerializer, UserSerializer
 from .models import User
 import requests
+import cloudinary.uploader
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -108,12 +109,31 @@ class ResumeUploadView(APIView):
         if not resume.name.endswith('.pdf'):
             return Response({'error': 'Only PDF files are allowed'}, status=status.HTTP_400_BAD_REQUEST)
 
-        request.user.resume = resume
+        try:
+            print(f"Uploading to Cloudinary: {resume.name}, size: {resume.size}")
+            result = cloudinary.uploader.upload(
+                resume,
+                resource_type='auto',
+                folder='user_resumes',
+                use_filename=True,
+                unique_filename=True,
+                access_mode='public',
+                type='upload',
+                invalidate=True,
+            )
+            print(f"Cloudinary result: {result}")
+            cloudinary_url = result['secure_url']
+        except Exception as e:
+            print(f"Cloudinary upload error: {e}")
+            return Response({'error': f'Upload failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        request.user.resume = cloudinary_url
         request.user.save()
+
         return Response(UserSerializer(request.user).data)
+
     def delete(self, request):
         if request.user.resume:
-            # Cloudinary handles file deletion automatically
             request.user.resume = None
             request.user.save()
         return Response({'message': 'Resume deleted'})

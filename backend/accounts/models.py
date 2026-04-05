@@ -30,7 +30,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     company_name = models.CharField(max_length=255, blank=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='jobseeker')
     avatar = models.URLField(blank=True)  # stores Google profile picture
-    resume = models.FileField(upload_to='user_resumes/', null=True, blank=True) 
+    resume = models.URLField(max_length=500, null=True, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     bio = models.TextField(blank=True)
     address = models.CharField(max_length=255, blank=True)
