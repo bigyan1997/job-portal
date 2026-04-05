@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
 
+const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8000";
+
 const Messages = () => {
   const { user } = useAuth();
   const [conversations, setConversations] = useState([]);
@@ -46,6 +48,7 @@ const Messages = () => {
 
     const socket = new WebSocket(
       `ws://localhost:8000/ws/chat/${activeConv.id}/?token=${token}`,
+      `${WS_URL}/ws/chat/${activeConv.id}/?token=${token}`,
     );
 
     socket.onopen = () => {
