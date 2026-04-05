@@ -138,18 +138,16 @@ class ResumeUploadView(APIView):
         resume = request.FILES.get('resume')
         if not resume:
             return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
-        if not resume.name.endswith('.pdf'):
-            return Response({'error': 'Only PDF files are allowed'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Delete old resume from Cloudinary if exists
-        if request.user.resume:
-            public_id = extract_public_id(str(request.user.resume))
-            if public_id:
-                try:
-                    cloudinary.uploader.destroy(public_id, resource_type='raw')
-                    print(f"Deleted old resume: {public_id}")
-                except Exception as e:
-                    print(f"Could not delete old resume: {e}")
+        
+        print(f"File name: {resume.name}")
+        print(f"File type: {resume.content_type}")
+        print(f"File size: {resume.size}")
+        
+        # Accept both .pdf extension and application/pdf MIME type
+        is_pdf = resume.name.lower().endswith('.pdf') or resume.content_type == 'application/pdf'
+        if not is_pdf:
+            print(f"Rejected: not a PDF. Name: {resume.name}, Type: {resume.content_type}")
+            return Response({'error': f'Only PDF files are allowed. Got: {resume.content_type}'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             result = cloudinary.uploader.upload(
@@ -163,6 +161,7 @@ class ResumeUploadView(APIView):
                 invalidate=True,
             )
             cloudinary_url = result['secure_url']
+            print(f"Uploaded to Cloudinary: {cloudinary_url}")
         except Exception as e:
             print(f"Cloudinary upload error: {e}")
             return Response({'error': f'Upload failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

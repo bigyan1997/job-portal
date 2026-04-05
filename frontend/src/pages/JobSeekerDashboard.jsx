@@ -79,8 +79,9 @@ const JobSeekerDashboard = () => {
       updateUser(res.data);
       setResumeSuccess("Resume uploaded successfully!");
       setTimeout(() => setResumeSuccess(""), 3000);
-    } catch {
-      alert("Failed to upload resume");
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || "Failed to upload resume";
+      alert(errorMsg);
     } finally {
       setResumeUploading(false);
     }
