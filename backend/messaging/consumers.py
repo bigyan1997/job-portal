@@ -1,7 +1,7 @@
 import json
+from urllib.parse import parse_qs, unquote
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from django.contrib.auth.models import AnonymousUser
 from rest_framework_simplejwt.tokens import AccessToken
 from accounts.models import User
 from .models import Conversation, Message
@@ -13,29 +13,42 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.conversation_id = self.scope['url_route']['kwargs']['conversation_id']
         self.room_group_name = f'chat_{self.conversation_id}'
 
-        # Authenticate user from token
-        token = self.scope.get('query_string', b'').decode()
-        if token.startswith('token='):
-            token = token[6:]
+        # Parse token from query string properly
+        query_string = self.scope.get('query_string', b'').decode()
+        params = parse_qs(query_string)
+        token = params.get('token', [None])[0]
+
+        if token:
+            token = unquote(token)
+
+        if not token:
+            print("WS: No token provided")
+            await self.close()
+            return
 
         try:
             access_token = AccessToken(token)
             self.user = await self.get_user(access_token['user_id'])
-        except Exception:
+        except Exception as e:
+            print(f"WS auth failed: {e}")
             await self.close()
             return
 
         # Check user is participant
         is_participant = await self.check_participant(self.conversation_id, self.user)
         if not is_participant:
+            print(f"WS: User {self.user.id} is not a participant of conversation {self.conversation_id}")
             await self.close()
             return
 
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
+        print(f"WS: User {self.user.id} connected to conversation {self.conversation_id}")
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        if hasattr(self, 'room_group_name'):
+            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        print(f"WS: Disconnected with code {close_code}")
 
     async def receive(self, text_data):
         data = json.loads(text_data)
@@ -79,7 +92,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def save_message(self, conversation_id, sender, content):
         conv = Conversation.objects.get(id=conversation_id)
-        conv.save()  # update updated_at
+        conv.save()
         return Message.objects.create(
             conversation=conv,
             sender=sender,
