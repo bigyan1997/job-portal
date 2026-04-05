@@ -33,7 +33,7 @@ const JobSeekerDashboard = () => {
     if (!resume) return null;
     if (resume.startsWith("http")) return resume;
     const cleaned = resume.replace(/^\/?media\//, "");
-    return `https://res.cloudinary.com/dauaetfqc/raw/upload/${resume}`;
+    return `https://res.cloudinary.com/dauaetfqc/raw/upload/${cleaned}`;
   };
 
   useEffect(() => {

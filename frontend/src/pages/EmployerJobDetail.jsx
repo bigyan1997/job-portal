@@ -710,7 +710,7 @@ const EmployerJobDetail = () => {
                           href={
                             app.resume?.startsWith("http")
                               ? app.resume
-                              : `https://res.cloudinary.com/dauaetfqc/raw/upload/${app.resume}`
+                              : `https://res.cloudinary.com/dauaetfqc/raw/upload/${app.resume?.replace(/^\/?media\//, "")}`
                           }
                           target="_blank"
                           rel="noreferrer"
