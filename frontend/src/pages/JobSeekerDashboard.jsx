@@ -154,6 +154,11 @@ const JobSeekerDashboard = () => {
 
   return (
     <div style={{ minHeight: "100vh", background: "#F8F7F4" }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .skills-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       {/* Header */}
       <div style={{ background: "#0F1923", padding: "40px 24px" }}>
         <div style={{ maxWidth: "760px", margin: "0 auto" }}>
@@ -843,10 +848,11 @@ const JobSeekerDashboard = () => {
                     {/* Skills grid */}
                     {(app.matching_skills || app.missing_skills) && (
                       <div
+                        className="skills-grid"
                         style={{
                           display: "grid",
                           gridTemplateColumns: "1fr 1fr",
-                          gap: "20px",
+                          gap: "12px",
                           marginBottom: "20px",
                         }}
                       >
