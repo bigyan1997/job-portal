@@ -707,7 +707,7 @@ const EmployerJobDetail = () => {
                       {/* Resume */}
                       {app.resume && (
                         <a
-                          href={`http://localhost:8000/${app.resume}`}
+                          href={app.resume}
                           target="_blank"
                           rel="noreferrer"
                           style={{

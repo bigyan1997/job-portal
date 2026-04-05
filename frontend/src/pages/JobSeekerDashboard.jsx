@@ -345,7 +345,7 @@ const JobSeekerDashboard = () => {
                   </p>
 
                   <a
-                    href={`http://localhost:8000/${currentResume}`}
+                    href={currentResume}
                     target="_blank"
                     rel="noreferrer"
                     style={{
