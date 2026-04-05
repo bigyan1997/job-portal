@@ -47,7 +47,6 @@ const Messages = () => {
     }
 
     const socket = new WebSocket(
-      `ws://localhost:8000/ws/chat/${activeConv.id}/?token=${token}`,
       `${WS_URL}/ws/chat/${activeConv.id}/?token=${token}`,
     );
 
