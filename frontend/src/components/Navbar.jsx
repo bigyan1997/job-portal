@@ -13,12 +13,16 @@ const Navbar = () => {
 
   useEffect(() => {
     if (!user) return;
+
     const fetchUnread = async () => {
+      // Only poll when tab is visible
+      if (document.hidden) return;
       try {
         const res = await api.get("/messaging/unread/");
         setUnreadCount(res.data.unread_count);
       } catch {}
     };
+
     fetchUnread();
     const interval = setInterval(fetchUnread, 10000);
     return () => clearInterval(interval);
