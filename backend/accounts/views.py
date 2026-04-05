@@ -114,17 +114,17 @@ class ProfileUpdateView(APIView):
 
 def extract_public_id(cloudinary_url):
     """Extract public_id from Cloudinary URL for deletion"""
-    # URL format: https://res.cloudinary.com/cloud/raw/upload/v123/user_resumes/filename.pdf
     try:
-        parts = cloudinary_url.split('/upload/')
-        public_id_with_version = parts[1]
-        # remove version number (v1234567/)
-        if public_id_with_version.startswith('v'):
-            public_id = '/'.join(public_id_with_version.split('/')[1:])
-        else:
-            public_id = public_id_with_version
-        # remove file extension
-        public_id = public_id.rsplit('.', 1)[0]
+        if '/upload/' not in cloudinary_url:
+            return None
+        after_upload = cloudinary_url.split('/upload/')[1]
+        # Remove version number if present (v1234567/)
+        parts = after_upload.split('/')
+        if parts[0].startswith('v') and parts[0][1:].isdigit():
+            parts = parts[1:]  # remove version
+        # Join remaining parts — keep extension for raw files
+        public_id = '/'.join(parts)
+        print(f"Extracted public_id: {public_id}")
         return public_id
     except Exception as e:
         print(f"Could not extract public_id: {e}")
@@ -173,12 +173,12 @@ class ResumeUploadView(APIView):
 
     def delete(self, request):
         if request.user.resume:
-            # Delete from Cloudinary
-            public_id = extract_public_id(str(request.user.resume))
+            full_url = str(request.user.resume)
+            public_id = extract_public_id(full_url)
             if public_id:
                 try:
-                    cloudinary.uploader.destroy(public_id, resource_type='raw')
-                    print(f"Deleted resume: {public_id}")
+                    result = cloudinary.uploader.destroy(public_id, resource_type='raw')
+                    print(f"Cloudinary delete result: {result}")
                 except Exception as e:
                     print(f"Could not delete resume: {e}")
             request.user.resume = None
