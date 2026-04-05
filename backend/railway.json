@@ -4,7 +4,7 @@
     "buildCommand": "python3 -m pip install -r requirements.txt"
   },
   "deploy": {
-    "startCommand": "sh -c 'python3 manage.py collectstatic --noinput && python3 manage.py migrate && daphne -b 0.0.0.0 -p $PORT core.asgi:application'",
+    "startCommand": "sh -c 'mkdir -p staticfiles && python3 manage.py collectstatic --noinput && python3 manage.py migrate && daphne -b 0.0.0.0 -p $PORT core.asgi:application'",
     "restartPolicyType": "ON_FAILURE"
   }
 }
