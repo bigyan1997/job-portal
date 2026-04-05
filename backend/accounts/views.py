@@ -98,6 +98,20 @@ class MeView(APIView):
     def get(self, request):
         return Response(UserSerializer(request.user).data)
 
+class ProfileUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        allowed_fields = [
+            'full_name', 'company_name', 'phone', 'bio', 'address',
+            'city', 'state', 'country', 'linkedin', 'portfolio'
+        ]
+        for field in allowed_fields:
+            if field in request.data:
+                setattr(request.user, field, request.data[field])
+        request.user.save()
+        return Response(UserSerializer(request.user).data)
+
 def extract_public_id(cloudinary_url):
     """Extract public_id from Cloudinary URL for deletion"""
     # URL format: https://res.cloudinary.com/cloud/raw/upload/v123/user_resumes/filename.pdf
