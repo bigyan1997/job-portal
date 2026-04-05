@@ -381,23 +381,29 @@ const JobSeekerDashboard = () => {
               <div
                 style={{ display: "flex", alignItems: "center", gap: "12px" }}
               >
-                <label
+                <button
+                  onClick={() =>
+                    document.getElementById("resume-replace-input").click()
+                  }
                   style={{
                     color: "#2563EB",
                     fontSize: "13px",
                     fontWeight: 500,
                     cursor: "pointer",
+                    background: "none",
+                    border: "none",
+                    padding: 0,
                   }}
                 >
                   Replace
-                  <input
-                    type="file"
-                    accept=".pdf,application/pdf"
-                    onChange={handleResumeUpload}
-                    style={{ display: "none" }}
-                    capture={false}
-                  />
-                </label>
+                </button>
+                <input
+                  id="resume-replace-input"
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  onChange={handleResumeUpload}
+                  style={{ display: "none" }}
+                />
                 <button
                   onClick={handleResumeDelete}
                   style={{
@@ -413,92 +419,98 @@ const JobSeekerDashboard = () => {
               </div>
             </div>
           ) : (
-            <label
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                border: `2px dashed ${resumeUploading ? "#3B82F6" : "#E5E7EB"}`,
-                borderRadius: "12px",
-                padding: "40px 24px",
-                cursor: "pointer",
-                background: resumeUploading ? "#EFF6FF" : "transparent",
-                transition: "all 0.15s ease",
-              }}
-            >
+            <div>
               <input
+                id="resume-upload-input"
                 type="file"
                 accept=".pdf,application/pdf"
                 onChange={handleResumeUpload}
                 style={{ display: "none" }}
-                capture={false}
               />
-              {resumeUploading ? (
-                <>
-                  <svg
-                    className="animate-spin h-8 w-8"
-                    style={{ color: "#3B82F6", marginBottom: "12px" }}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
-                    />
-                  </svg>
-                  <p
-                    style={{
-                      color: "#3B82F6",
-                      fontSize: "14px",
-                      fontWeight: 500,
-                    }}
-                  >
-                    Uploading...
-                  </p>
-                </>
-              ) : (
-                <>
-                  <div
-                    style={{
-                      width: "48px",
-                      height: "48px",
-                      borderRadius: "12px",
-                      background: "#F3F4F6",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "22px",
-                      marginBottom: "12px",
-                    }}
-                  >
-                    📄
-                  </div>
-                  <p
-                    style={{
-                      color: "#111827",
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      marginBottom: "4px",
-                    }}
-                  >
-                    Upload your resume
-                  </p>
-                  <p style={{ color: "#9CA3AF", fontSize: "12px" }}>
-                    PDF only · Click to browse
-                  </p>
-                </>
-              )}
-            </label>
+              <button
+                onClick={() =>
+                  document.getElementById("resume-upload-input").click()
+                }
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  border: `2px dashed ${resumeUploading ? "#3B82F6" : "#E5E7EB"}`,
+                  borderRadius: "12px",
+                  padding: "40px 24px",
+                  cursor: "pointer",
+                  background: resumeUploading ? "#EFF6FF" : "transparent",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                {resumeUploading ? (
+                  <>
+                    <svg
+                      className="animate-spin h-8 w-8"
+                      style={{ color: "#3B82F6", marginBottom: "12px" }}
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8z"
+                      />
+                    </svg>
+                    <p
+                      style={{
+                        color: "#3B82F6",
+                        fontSize: "14px",
+                        fontWeight: 500,
+                      }}
+                    >
+                      Uploading...
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div
+                      style={{
+                        width: "48px",
+                        height: "48px",
+                        borderRadius: "12px",
+                        background: "#F3F4F6",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "22px",
+                        marginBottom: "12px",
+                      }}
+                    >
+                      📄
+                    </div>
+                    <p
+                      style={{
+                        color: "#111827",
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        marginBottom: "4px",
+                      }}
+                    >
+                      Upload your resume
+                    </p>
+                    <p style={{ color: "#9CA3AF", fontSize: "12px" }}>
+                      PDF only · Click to browse
+                    </p>
+                  </>
+                )}
+              </button>
+            </div>
           )}
         </div>
 
