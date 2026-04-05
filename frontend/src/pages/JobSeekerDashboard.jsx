@@ -58,10 +58,16 @@ const JobSeekerDashboard = () => {
   const handleResumeUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (!file.name.endsWith(".pdf")) {
+
+    // Check both extension and MIME type for mobile compatibility
+    const isPDF =
+      file.name.toLowerCase().endsWith(".pdf") ||
+      file.type === "application/pdf";
+    if (!isPDF) {
       alert("Only PDF files are allowed");
       return;
     }
+
     setResumeUploading(true);
     try {
       const formData = new FormData();
@@ -385,9 +391,10 @@ const JobSeekerDashboard = () => {
                   Replace
                   <input
                     type="file"
-                    accept=".pdf"
+                    accept=".pdf,application/pdf"
                     onChange={handleResumeUpload}
                     style={{ display: "none" }}
+                    capture={false}
                   />
                 </label>
                 <button
@@ -421,9 +428,10 @@ const JobSeekerDashboard = () => {
             >
               <input
                 type="file"
-                accept=".pdf"
+                accept=".pdf,application/pdf"
                 onChange={handleResumeUpload}
                 style={{ display: "none" }}
+                capture={false}
               />
               {resumeUploading ? (
                 <>
