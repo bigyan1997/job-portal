@@ -108,23 +108,15 @@ class ResumeUploadView(APIView):
         if not resume.name.endswith('.pdf'):
             return Response({'error': 'Only PDF files are allowed'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # delete old resume if exists
-        if request.user.resume:
-            if os.path.isfile(request.user.resume.path):
-                os.remove(request.user.resume.path)
-
         request.user.resume = resume
         request.user.save()
         return Response(UserSerializer(request.user).data)
-
     def delete(self, request):
         if request.user.resume:
-            if os.path.isfile(request.user.resume.path):
-                os.remove(request.user.resume.path)
+            # Cloudinary handles file deletion automatically
             request.user.resume = None
             request.user.save()
         return Response({'message': 'Resume deleted'})
-
 class ProfileUpdateView(APIView):
     permission_classes = [IsAuthenticated]
 

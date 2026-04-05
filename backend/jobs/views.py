@@ -38,12 +38,15 @@ class AnalyseResumeView(APIView):
         except Job.DoesNotExist:
             return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        resume_path = os.path.join(settings.MEDIA_ROOT, str(request.user.resume))
+        resume_url = request.user.resume.url
         result = analyze_resume(
-            resume_file_path=resume_path,
+            resume_file_path=resume_url,
             job_title=job.title,
             job_description=job.description,
             job_requirements=job.requirements,
+            user_name=request.user.full_name,
+            user_email=request.user.email,
+            user_phone=request.user.phone,
         )
 
         if not result:
@@ -64,13 +67,21 @@ class AnalyseResumeView(APIView):
 def run_ai_analysis(application):
     """Runs in background after application is submitted"""
     try:
-        resume_path = os.path.join(settings.MEDIA_ROOT, str(application.resume))
+        # Use Cloudinary URL if available, otherwise local path
+        if application.resume:
+            resume_url = application.resume.url
+        else:
+            from django.conf import settings
+            resume_url = os.path.join(settings.MEDIA_ROOT, str(application.applicant.resume))
 
         result = analyze_resume(
-            resume_file_path=resume_path,
+            resume_file_path=resume_url,
             job_title=application.job.title,
             job_description=application.job.description,
             job_requirements=application.job.requirements,
+            user_name=application.applicant.full_name,
+            user_email=application.applicant.email,
+            user_phone=application.applicant.phone,
         )
 
         if result:

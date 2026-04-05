@@ -3,10 +3,25 @@ from google.genai import types
 import PyPDF2
 import os
 import json
+import urllib.request
+import tempfile
 
 client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
 
-
+def get_resume_path(resume_field):
+    """Handle both Cloudinary URLs and local file paths"""
+    resume_url = str(resume_field)
+    if resume_url.startswith('http'):
+        # Download from Cloudinary to a temp file
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
+            urllib.request.urlretrieve(resume_url, tmp.name)
+            return tmp.name
+    else:
+        # Local file path
+        from django.conf import settings
+        import os
+        return os.path.join(settings.MEDIA_ROOT, resume_url)
+    
 def extract_text_from_pdf(resume_file_path):
     """Extract plain text from a PDF resume file"""
     text = ''
@@ -60,8 +75,9 @@ def analyze_resume(resume_file_path, job_title, job_description, job_requirement
     - cover letter
     """
 
-    resume_text = extract_text_from_pdf(resume_file_path)
-
+    actual_path = get_resume_path(resume_file_path)
+    resume_text = extract_text_from_pdf(actual_path)
+    
     if not resume_text:
         print('No text extracted from PDF')
         return None
