@@ -1,8 +1,21 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
 
 const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8000";
+
+// Static styles — outside component so never re-created
+const STATIC_STYLES = `
+  @media (max-width: 768px) {
+    .messages-container { height: calc(100vh - 160px) !important; padding: 12px !important; }
+    .messages-desktop { display: none !important; }
+    .mobile-back-btn { display: block !important; }
+  }
+  @media (min-width: 769px) {
+    .mobile-only { display: none !important; }
+    .mobile-back-btn { display: none !important; }
+  }
+`;
 
 const Messages = () => {
   const { user } = useAuth();
@@ -11,7 +24,7 @@ const Messages = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
-  const [showChat, setShowChat] = useState(false); // mobile: show chat or list
+  const [showChat, setShowChat] = useState(false);
   const ws = useRef(null);
   const messagesEndRef = useRef(null);
   const token = localStorage.getItem("access_token");
@@ -98,24 +111,27 @@ const Messages = () => {
     }
   };
 
-  const sendMessage = () => {
+  const sendMessage = useCallback(() => {
     if (!newMessage.trim() || !ws.current) return;
     if (ws.current.readyState !== WebSocket.OPEN) return;
     ws.current.send(JSON.stringify({ content: newMessage.trim() }));
     setNewMessage("");
-  };
+  }, [newMessage]);
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    },
+    [sendMessage],
+  );
 
-  const handleSelectConv = (conv) => {
+  const handleSelectConv = useCallback((conv) => {
     setActiveConv(conv);
     setShowChat(true);
-  };
+  }, []);
 
   const formatTime = (dateStr) =>
     new Date(dateStr).toLocaleTimeString("en-AU", {
@@ -136,7 +152,8 @@ const Messages = () => {
     0,
   );
 
-  const ConversationList = () => (
+  // Conversation list JSX
+  const conversationListJSX = (
     <div
       style={{
         background: "#fff",
@@ -364,7 +381,8 @@ const Messages = () => {
     </div>
   );
 
-  const ChatWindow = () => (
+  // Chat window JSX
+  const chatWindowJSX = (
     <div
       style={{
         background: "#fff",
@@ -405,7 +423,6 @@ const Messages = () => {
         </div>
       ) : (
         <>
-          {/* Chat header */}
           <div
             style={{
               padding: "16px 20px",
@@ -416,7 +433,6 @@ const Messages = () => {
               background: "#FAFAFA",
             }}
           >
-            {/* Back button — mobile only */}
             <button
               onClick={() => setShowChat(false)}
               className="mobile-back-btn"
@@ -467,7 +483,6 @@ const Messages = () => {
             </div>
           </div>
 
-          {/* Messages */}
           <div
             style={{
               flex: 1,
@@ -532,7 +547,6 @@ const Messages = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
           <div
             style={{
               padding: "12px 16px",
@@ -589,17 +603,8 @@ const Messages = () => {
 
   return (
     <div style={{ minHeight: "100vh", background: "#F8F7F4" }}>
-      <style>{`
-        @media (max-width: 768px) {
-          .messages-grid { grid-template-columns: 1fr !important; }
-          .messages-list { display: ${showChat ? "none" : "flex"} !important; }
-          .messages-chat { display: ${showChat ? "flex" : "none"} !important; }
-          .mobile-back-btn { display: block !important; }
-          .messages-container { height: calc(100vh - 160px) !important; padding: 12px !important; }
-        }
-      `}</style>
+      <style>{STATIC_STYLES}</style>
 
-      {/* Header */}
       <div style={{ background: "#0F1923", padding: "24px" }}>
         <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
           <h1
@@ -643,8 +648,14 @@ const Messages = () => {
           height: "calc(100vh - 180px)",
         }}
       >
+        {/* Mobile view — show list or chat */}
+        <div className="mobile-only" style={{ height: "100%" }}>
+          {!showChat ? conversationListJSX : chatWindowJSX}
+        </div>
+
+        {/* Desktop view — side by side */}
         <div
-          className="messages-grid"
+          className="messages-desktop"
           style={{
             display: "grid",
             gridTemplateColumns: "300px 1fr",
@@ -652,18 +663,8 @@ const Messages = () => {
             height: "100%",
           }}
         >
-          <div
-            className="messages-list"
-            style={{ display: "flex", flexDirection: "column" }}
-          >
-            <ConversationList />
-          </div>
-          <div
-            className="messages-chat"
-            style={{ display: "flex", flexDirection: "column" }}
-          >
-            <ChatWindow />
-          </div>
+          {conversationListJSX}
+          {chatWindowJSX}
         </div>
       </div>
     </div>
