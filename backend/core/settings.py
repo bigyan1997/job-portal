@@ -13,12 +13,12 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 INSTALLED_APPS = [
+    'daphne',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'daphne',
-    'channels',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
@@ -45,7 +45,7 @@ CORS_ALLOWED_ORIGINS = os.getenv(
     'CORS_ALLOWED_ORIGINS',
     'http://localhost:5173'
 ).split(',')
-
+CORS_ALLOW_ALL_ORIGINS = True
 # Allow all Railway subdomains
 if os.getenv('RAILWAY_STATIC_URL'):
     ALLOWED_HOSTS.append(os.getenv('RAILWAY_STATIC_URL'))
@@ -141,6 +141,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Trust Railway's proxy
 CSRF_TRUSTED_ORIGINS = [
     'https://happy-heart-production-6871.up.railway.app',
+    'https://job-portal-xi-rosy.vercel.app',
     'http://localhost:5173',
 ]
 
