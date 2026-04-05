@@ -885,8 +885,12 @@ const JobSeekerDashboard = () => {
                                       background: "#DCFCE7",
                                       color: "#15803D",
                                       fontSize: "11px",
-                                      padding: "3px 10px",
+                                      padding: "4px 10px",
                                       borderRadius: "999px",
+                                      display: "inline-block",
+                                      maxWidth: "100%",
+                                      wordBreak: "break-word",
+                                      lineHeight: 1.4,
                                     }}
                                   >
                                     {skill}
@@ -924,8 +928,12 @@ const JobSeekerDashboard = () => {
                                       background: "#FEE2E2",
                                       color: "#B91C1C",
                                       fontSize: "11px",
-                                      padding: "3px 10px",
+                                      padding: "4px 10px",
                                       borderRadius: "999px",
+                                      display: "inline-block",
+                                      maxWidth: "100%",
+                                      wordBreak: "break-word",
+                                      lineHeight: 1.4,
                                     }}
                                   >
                                     {skill}
