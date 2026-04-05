@@ -32,6 +32,7 @@ const JobSeekerDashboard = () => {
   const getResumeUrl = (resume) => {
     if (!resume) return null;
     if (resume.startsWith("http")) return resume;
+    const cleaned = resume.replace(/^\/?media\//, "");
     return `https://res.cloudinary.com/dauaetfqc/raw/upload/${resume}`;
   };
 
