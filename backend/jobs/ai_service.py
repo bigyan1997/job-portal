@@ -11,17 +11,26 @@ client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
 def get_resume_path(resume_field):
     """Handle both Cloudinary URLs and local file paths"""
     resume_url = str(resume_field)
-    if resume_url.startswith('http'):
-        # Download from Cloudinary to a temp file
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
-            urllib.request.urlretrieve(resume_url, tmp.name)
-            return tmp.name
-    else:
-        # Local file path
-        from django.conf import settings
-        import os
-        return os.path.join(settings.MEDIA_ROOT, resume_url)
+    print(f"get_resume_path called with: {resume_url}")
     
+    if resume_url.startswith('http'):
+        try:
+            tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+            print(f"Downloading from: {resume_url}")
+            urllib.request.urlretrieve(resume_url, tmp.name)
+            tmp.close()
+            print(f"Downloaded to: {tmp.name}")
+            return tmp.name
+        except Exception as e:
+            print(f"Failed to download resume: {e}")
+            return None
+    else:
+        from django.conf import settings
+        path = os.path.join(settings.MEDIA_ROOT, resume_url)
+        print(f"Local path: {path}")
+        return path
+
+
 def extract_text_from_pdf(resume_file_path):
     """Extract plain text from a PDF resume file"""
     text = ''
@@ -76,17 +85,18 @@ def analyze_resume(resume_file_path, job_title, job_description, job_requirement
     """
 
     actual_path = get_resume_path(resume_file_path)
+    if not actual_path:
+        print('Could not get resume path')
+        return None
     resume_text = extract_text_from_pdf(actual_path)
-    
+
     if not resume_text:
         print('No text extracted from PDF')
         return None
 
-    # always extract from resume first
     contact = extract_contact_info(resume_text)
     print(f"Extracted contact: {contact}")
 
-    # profile fields take priority — fall back to extracted if empty
     final_name = user_name.strip() if user_name and user_name.strip() else contact.get('name', '')
     final_email = user_email.strip() if user_email and user_email.strip() else contact.get('email', '')
     final_phone = user_phone.strip() if user_phone and user_phone.strip() else contact.get('phone', '')
@@ -138,10 +148,8 @@ Return ONLY this JSON structure:
 
         result = json.loads(raw)
 
-        # force correct sign-off even if Gemini ignores the instruction
         cover_letter = result.get('cover_letter', '')
         if final_name and 'Yours sincerely' in cover_letter:
-            # remove everything after "Yours sincerely," and replace with our sign-off
             parts = cover_letter.split('Yours sincerely')
             cover_letter = parts[0] + f"Yours sincerely,\n\n{final_name}\n{final_email}\n{final_phone}"
             result['cover_letter'] = cover_letter

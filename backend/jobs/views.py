@@ -38,7 +38,7 @@ class AnalyseResumeView(APIView):
         except Job.DoesNotExist:
             return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        resume_url = request.user.resume.url
+        resume_url = request.user.resume
         result = analyze_resume(
             resume_file_path=resume_url,
             job_title=job.title,
