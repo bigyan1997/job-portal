@@ -24,6 +24,18 @@ const JobSeekerDashboard = () => {
   const [currentResume, setCurrentResume] = useState(user?.resume || null);
 
   useEffect(() => {
+    if (user?.resume) {
+      setCurrentResume(user.resume);
+    }
+  }, [user?.resume]);
+
+  const getResumeUrl = (resume) => {
+    if (!resume) return null;
+    if (resume.startsWith("http")) return resume;
+    return `https://res.cloudinary.com/dauaetfqc/raw/upload/${resume}`;
+  };
+
+  useEffect(() => {
     const fetchApplications = async () => {
       try {
         const res = await api.get("/jobs/applications/");
@@ -345,7 +357,7 @@ const JobSeekerDashboard = () => {
                   </p>
 
                   <a
-                    href={currentResume}
+                    href={getResumeUrl(currentResume)}
                     target="_blank"
                     rel="noreferrer"
                     style={{
