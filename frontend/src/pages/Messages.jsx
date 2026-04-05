@@ -28,6 +28,7 @@ const Messages = () => {
   const ws = useRef(null);
   const messagesEndRef = useRef(null);
   const token = localStorage.getItem("access_token");
+  const currentConvIdRef = useRef(null);
 
   useEffect(() => {
     fetchConversations();
@@ -51,7 +52,12 @@ const Messages = () => {
 
   useEffect(() => {
     if (!activeConv) return;
+    // Don't reconnect if same conversation
+    if (currentConvIdRef.current === activeConv.id) return;
+    currentConvIdRef.current = activeConv.id;
+
     fetchMessages(activeConv.id);
+
     if (ws.current) {
       ws.current.onmessage = null;
       ws.current.onerror = null;
