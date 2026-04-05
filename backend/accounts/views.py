@@ -98,6 +98,24 @@ class MeView(APIView):
     def get(self, request):
         return Response(UserSerializer(request.user).data)
 
+def extract_public_id(cloudinary_url):
+    """Extract public_id from Cloudinary URL for deletion"""
+    # URL format: https://res.cloudinary.com/cloud/raw/upload/v123/user_resumes/filename.pdf
+    try:
+        parts = cloudinary_url.split('/upload/')
+        public_id_with_version = parts[1]
+        # remove version number (v1234567/)
+        if public_id_with_version.startswith('v'):
+            public_id = '/'.join(public_id_with_version.split('/')[1:])
+        else:
+            public_id = public_id_with_version
+        # remove file extension
+        public_id = public_id.rsplit('.', 1)[0]
+        return public_id
+    except Exception as e:
+        print(f"Could not extract public_id: {e}")
+        return None
+
 class ResumeUploadView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
@@ -109,11 +127,20 @@ class ResumeUploadView(APIView):
         if not resume.name.endswith('.pdf'):
             return Response({'error': 'Only PDF files are allowed'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Delete old resume from Cloudinary if exists
+        if request.user.resume:
+            public_id = extract_public_id(str(request.user.resume))
+            if public_id:
+                try:
+                    cloudinary.uploader.destroy(public_id, resource_type='raw')
+                    print(f"Deleted old resume: {public_id}")
+                except Exception as e:
+                    print(f"Could not delete old resume: {e}")
+
         try:
-            print(f"Uploading to Cloudinary: {resume.name}, size: {resume.size}")
             result = cloudinary.uploader.upload(
                 resume,
-                resource_type='auto',
+                resource_type='raw',
                 folder='user_resumes',
                 use_filename=True,
                 unique_filename=True,
@@ -121,7 +148,6 @@ class ResumeUploadView(APIView):
                 type='upload',
                 invalidate=True,
             )
-            print(f"Cloudinary result: {result}")
             cloudinary_url = result['secure_url']
         except Exception as e:
             print(f"Cloudinary upload error: {e}")
@@ -129,24 +155,18 @@ class ResumeUploadView(APIView):
 
         request.user.resume = cloudinary_url
         request.user.save()
-
         return Response(UserSerializer(request.user).data)
 
     def delete(self, request):
         if request.user.resume:
+            # Delete from Cloudinary
+            public_id = extract_public_id(str(request.user.resume))
+            if public_id:
+                try:
+                    cloudinary.uploader.destroy(public_id, resource_type='raw')
+                    print(f"Deleted resume: {public_id}")
+                except Exception as e:
+                    print(f"Could not delete resume: {e}")
             request.user.resume = None
             request.user.save()
         return Response({'message': 'Resume deleted'})
-class ProfileUpdateView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def put(self, request):
-        allowed_fields = [
-            'full_name', 'company_name', 'phone', 'bio', 'address',
-            'city', 'state', 'country', 'linkedin', 'portfolio'
-        ]
-        for field in allowed_fields:
-            if field in request.data:
-                setattr(request.user, field, request.data[field])
-        request.user.save()
-        return Response(UserSerializer(request.user).data)
