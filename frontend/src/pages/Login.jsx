@@ -80,8 +80,18 @@ const Login = () => {
 
   return (
     <div style={{ minHeight: "100vh", background: "#F8F7F4", display: "flex" }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .auth-left-panel { display: none !important; }
+          .auth-mobile-logo { display: flex !important; }
+        }
+        @media (min-width: 769px) {
+          .auth-mobile-logo { display: none !important; }
+        }
+      `}</style>
       {/* Left panel — branding */}
       <div
+        className="auth-left-panel"
         style={{
           width: "45%",
           background: "#0F1923",
@@ -90,7 +100,6 @@ const Login = () => {
           justifyContent: "center",
           padding: "60px",
         }}
-        className="hidden md:flex"
       >
         <div
           style={{
@@ -177,13 +186,13 @@ const Login = () => {
         <div style={{ width: "100%", maxWidth: "420px" }}>
           {/* Mobile logo */}
           <div
+            className="auth-mobile-logo"
             style={{
               display: "flex",
               alignItems: "center",
               gap: "8px",
               marginBottom: "32px",
             }}
-            className="md:hidden"
           >
             <div
               style={{
