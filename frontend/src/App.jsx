@@ -5,6 +5,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import VerifyEmail from "./pages/VerifyEmail";
+import CheckEmail from "./pages/CheckEmail";
 import Profile from "./pages/Profile";
 import JobDetail from "./pages/JobDetail";
 import Apply from "./pages/Apply";
@@ -29,6 +31,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/verify-email/:token" element={<VerifyEmail />} />
+        <Route path="/check-email" element={<CheckEmail />} />
         <Route path="/jobs/:id" element={<JobDetail />} />
         <Route
           path="/profile"

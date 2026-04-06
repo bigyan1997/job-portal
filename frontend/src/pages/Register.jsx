@@ -27,12 +27,7 @@ const Register = () => {
     setLoading(true);
     try {
       const res = await api.post("/auth/register/", formData);
-      login(res.data.user, res.data.tokens);
-      if (res.data.user.role === "employer") {
-        navigate("/employer");
-      } else {
-        navigate("/dashboard");
-      }
+      navigate("/check-email", { state: { email: formData.email } });
     } catch (err) {
       setError(err.response?.data?.email?.[0] || "Something went wrong");
     } finally {

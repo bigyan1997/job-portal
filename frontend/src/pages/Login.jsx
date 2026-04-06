@@ -28,9 +28,13 @@ const Login = () => {
         navigate("/dashboard");
       }
     } catch (err) {
-      setError(err.response?.data?.error || "Something went wrong");
-    } finally {
-      setLoading(false);
+      if (err.response?.data?.email_not_verified) {
+        setError(
+          "Please verify your email before logging in. Check your inbox.",
+        );
+      } else {
+        setError(err.response?.data?.error || "Something went wrong");
+      }
     }
   };
 
