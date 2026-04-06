@@ -11,6 +11,7 @@ from .serializers import RegisterSerializer, UserSerializer
 from .models import User
 import requests
 import cloudinary.uploader
+from .email_service import send_verification_email
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -19,15 +20,34 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            refresh = RefreshToken.for_user(user)
+            user.is_active = False # Deactivate account until email is verified
+            user.save()
+            # Send verification email
+            send_verification_email(
+                user_email=user.email,
+                user_name=user.full_name,
+                verification_token=user.email_verification_token,
+                frontend_url=os.getenv('FRONTEND_URL', 'http://localhost:5173')
+            )
             return Response({
-                'user': UserSerializer(user).data,
-                'tokens': {
-                    'refresh': str(refresh),
-                    'access': str(refresh.access_token),
-                }
+                'message': 'Account created! Please check your email to verify your account.',
+                'email': user.email,
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class VerifyEmailView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, token):
+        try:
+            user = User.objects.get(email_verification_token=token)
+            user.email_verified = True
+            user.is_active = True  # Activate the user
+            user.email_verification_token = None
+            user.save()
+            return Response({'message': 'Email verified successfully! You can now log in.'})
+        except User.DoesNotExist:
+            return Response({'error': 'Invalid or expired verification link.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginView(APIView):
@@ -38,6 +58,11 @@ class LoginView(APIView):
         password = request.data.get('password')
         user = authenticate(request, username=email, password=password)
         if user:
+            if not user.email_verified:
+                return Response({
+                    'error': 'Please verify your email before logging in. Check your inbox.',
+                    'email_not_verified': True,
+                }, status=status.HTTP_403_FORBIDDEN)
             refresh = RefreshToken.for_user(user)
             return Response({
                 'user': UserSerializer(user).data,
@@ -77,9 +102,16 @@ class GoogleLoginView(APIView):
             defaults={
                 'full_name': full_name,
                 'avatar': avatar,
-                'role': role  # ← pass role
+                'role': role,  # ← pass role
+                'email_verified': True,  # Mark email as verified since it comes from Google
+                'is_active': True,  # Activate the user
+
             }
         )
+        if not created and not user.email_verified:
+            user.email_verified = True
+            user.is_active = True
+            user.save()
 
         refresh = RefreshToken.for_user(user)
         return Response({

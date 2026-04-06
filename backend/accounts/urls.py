@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterView, LoginView, GoogleLoginView, MeView, ResumeUploadView, ProfileUpdateView
+from .views import RegisterView, LoginView, GoogleLoginView, MeView, ResumeUploadView, ProfileUpdateView, VerifyEmailView
 from .stripe_views import CreateCheckoutSessionView, CancelSubscriptionView, SubscriptionStatusView, StripeWebhookView
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -11,6 +11,9 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view()),
     path('resume/', ResumeUploadView.as_view()),
     path('profile/', ProfileUpdateView.as_view()),
+    path('verify-email/<uuid:token>/', VerifyEmailView.as_view()),
+
+    
     path('subscription/', SubscriptionStatusView.as_view()),
     path('subscription/create-checkout/', CreateCheckoutSessionView.as_view()),
     path('subscription/cancel/', CancelSubscriptionView.as_view()),
