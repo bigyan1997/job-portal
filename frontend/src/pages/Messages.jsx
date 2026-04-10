@@ -27,7 +27,6 @@ const Messages = () => {
   const [showChat, setShowChat] = useState(false);
   const ws = useRef(null);
   const messagesEndRef = useRef(null);
-  const token = localStorage.getItem("access_token");
   const currentConvIdRef = useRef(null);
 
   useEffect(() => {
@@ -64,6 +63,7 @@ const Messages = () => {
       ws.current.close();
       ws.current = null;
     }
+    const token = localStorage.getItem("access_token");
     const socket = new WebSocket(
       `${WS_URL}/ws/chat/${activeConv.id}/?token=${encodeURIComponent(token)}`,
     );
@@ -88,9 +88,11 @@ const Messages = () => {
       console.log(`WS disconnected from conversation ${activeConv.id}`);
     ws.current = socket;
     return () => {
+      currentConvIdRef.current = null;
       socket.onmessage = null;
       socket.onerror = null;
       socket.close();
+      ws.current = null;
     };
   }, [activeConv?.id]);
 
@@ -135,6 +137,7 @@ const Messages = () => {
   );
 
   const handleSelectConv = useCallback((conv) => {
+    setMessages([]);
     setActiveConv(conv);
     setShowChat(true);
   }, []);
