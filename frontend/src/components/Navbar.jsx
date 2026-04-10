@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
@@ -10,13 +10,19 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const locationRef = useRef(location.pathname);
+
+  useEffect(() => {
+    locationRef.current = location.pathname;
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!user) return;
 
     const fetchUnread = async () => {
-      // Only poll when tab is visible
+      // Only poll when tab is visible and not already on the messages page
       if (document.hidden) return;
+      if (locationRef.current === "/messages") return;
       try {
         const res = await api.get("/messaging/unread/");
         setUnreadCount(res.data.unread_count);
