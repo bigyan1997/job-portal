@@ -98,13 +98,15 @@ const EmployerJobDetail = () => {
   return (
     <div style={{ minHeight: "100vh", background: "#F8F7F4" }}>
       <style>{`
-      @media (max-width: 768px) {
-        .employer-detail-grid { grid-template-columns: 1fr !important; }
-        .employer-skills-grid { grid-template-columns: 1fr !important; }
-        .employer-job-info { display: none !important; }
-        .employer-header-btns { flex-direction: column !important; }
-      }
-    `}</style>
+        @media (max-width: 768px) {
+          .employer-detail-grid { grid-template-columns: 1fr !important; }
+          .employer-skills-grid { grid-template-columns: 1fr !important; }
+          .employer-job-info { display: none !important; }
+          .employer-header-btns { flex-direction: column !important; }
+          .employer-detail-grid * { max-width: 100%; word-break: break-word; }
+          .employer-content { padding: 16px !important; }
+        }
+      `}</style>
       {/* Header */}
       <div style={{ background: "#0F1923", padding: "32px 24px" }}>
         <div style={{ maxWidth: "860px", margin: "0 auto" }}>
@@ -230,7 +232,12 @@ const EmployerJobDetail = () => {
       </div>
 
       <div
-        style={{ maxWidth: "1100px", margin: "0 auto", padding: "32px 24px" }}
+        style={{
+          maxWidth: "1100px",
+          margin: "0 auto",
+          padding: "32px 24px",
+          overflow: "hidden",
+        }}
       >
         <div
           className="employer-detail-grid"
@@ -253,7 +260,11 @@ const EmployerJobDetail = () => {
               }}
             >
               <div
-                style={{ padding: "24px", borderBottom: "1px solid #F3F4F6" }}
+                style={{
+                  padding: "24px",
+                  borderBottom: "1px solid #F3F4F6",
+                  overflow: "hidden",
+                }}
               >
                 <h3
                   style={{
@@ -276,7 +287,7 @@ const EmployerJobDetail = () => {
                   {job.description}
                 </p>
               </div>
-              <div style={{ padding: "24px" }}>
+              <div style={{ padding: "24px", overflow: "hidden" }}>
                 <h3
                   style={{
                     color: "#111827",
