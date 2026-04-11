@@ -1059,8 +1059,8 @@ const JobDetail = () => {
                       <div
                         style={{
                           display: "flex",
-                          flexWrap: "wrap",
-                          gap: "6px",
+                          flexDirection: "column",
+                          gap: "4px",
                         }}
                       >
                         {analysis.matching_skills.map((skill, i) => (
@@ -1069,9 +1069,13 @@ const JobDetail = () => {
                             style={{
                               background: "#DCFCE7",
                               color: "#15803D",
-                              fontSize: "12px",
-                              padding: "4px 12px",
-                              borderRadius: "999px",
+                              fontSize: "11px",
+                              padding: "4px 10px",
+                              borderRadius: "8px",
+                              display: "block",
+                              wordBreak: "break-word",
+                              lineHeight: 1.5,
+                              marginBottom: "4px",
                             }}
                           >
                             {skill}
@@ -1104,9 +1108,13 @@ const JobDetail = () => {
                             style={{
                               background: "#FEE2E2",
                               color: "#B91C1C",
-                              fontSize: "12px",
-                              padding: "4px 12px",
-                              borderRadius: "999px",
+                              fontSize: "11px",
+                              padding: "4px 10px",
+                              borderRadius: "8px",
+                              display: "block",
+                              wordBreak: "break-word",
+                              lineHeight: 1.5,
+                              marginBottom: "4px",
                             }}
                           >
                             {skill}
