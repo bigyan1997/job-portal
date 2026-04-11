@@ -198,3 +198,59 @@ def send_application_status_email(user_email, user_name, job_title, company, new
     except Exception as e:
         print(f"Failed to send status email: {e}")
         return False
+  
+def send_application_withdrawn_email(employer_email, employer_name, applicant_name, job_title):
+    configuration = sib_api_v3_sdk.Configuration()
+    configuration.api_key['api-key'] = os.getenv('BREVO_API_KEY')
+    api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
+        sib_api_v3_sdk.ApiClient(configuration)
+    )
+
+    html_content = f"""
+<!DOCTYPE html>
+<html>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F8F7F4; margin: 0; padding: 40px 20px;">
+  <div style="max-width: 480px; margin: 0 auto; background: #fff; border-radius: 16px; overflow: hidden;">
+    <div style="background: #0F1923; padding: 32px; text-align: center;">
+      <span style="color: #F1F5F9; font-size: 20px; font-weight: 700;">JobPortal <span style="color: #3B82F6;">AI</span></span>
+    </div>
+    <div style="padding: 40px 32px;">
+      <div style="font-size: 48px; text-align: center; margin-bottom: 16px;">📋</div>
+      <h1 style="color: #111827; font-size: 22px; font-weight: 700; margin-bottom: 12px; text-align: center;">Application Withdrawn</h1>
+      <div style="background: #FEF9C3; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px;">
+        <p style="color: #A16207; font-size: 14px; line-height: 1.6; margin: 0;">
+          <strong>{applicant_name}</strong> has withdrawn their application for <strong>{job_title}</strong>.
+        </p>
+      </div>
+      <p style="color: #6B7280; font-size: 14px; line-height: 1.6; margin-bottom: 28px;">
+        Hi {employer_name or 'there'},<br><br>
+        This is to let you know that the above candidate has withdrawn their application. You may want to review your remaining applicants.
+      </p>
+      <a href="{os.getenv('FRONTEND_URL', 'http://localhost:5173')}/employer" 
+         style="display: block; background: #111827; color: #fff; text-align: center; padding: 14px 24px; border-radius: 10px; font-weight: 600; font-size: 15px; text-decoration: none; margin-bottom: 24px;">
+        View Applicants →
+      </a>
+      <hr style="border: none; border-top: 1px solid #F3F4F6; margin: 24px 0;">
+      <p style="color: #9CA3AF; font-size: 12px; text-align: center;">
+        You're receiving this because you posted a job on JobPortal AI.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+    """
+
+    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+        to=[{"email": employer_email, "name": employer_name or "Employer"}],
+        sender={"email": "karkibigyan05@gmail.com", "name": "JobPortal AI"},
+        subject=f"Application withdrawn — {job_title}",
+        html_content=html_content,
+    )
+
+    try:
+        api_instance.send_transac_email(send_smtp_email)
+        print(f"Withdrawal email sent to {employer_email}")
+        return True
+    except Exception as e:
+        print(f"Failed to send withdrawal email: {e}")
+        return False

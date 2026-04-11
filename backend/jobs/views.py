@@ -276,6 +276,33 @@ class ApplicationDetailView(APIView):
             thread.start()
 
         return Response(ApplicationSerializer(application).data)
+    
+    def delete(self, request, pk):
+        try:
+            application = Application.objects.get(pk=pk)
+        except Application.DoesNotExist:
+            return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if application.applicant != request.user:
+            return Response({'error': 'Not allowed'}, status=status.HTTP_403_FORBIDDEN)
+
+        # notify employer in background
+        from accounts.email_service import send_application_withdrawn_email
+        import threading
+        thread = threading.Thread(
+            target=send_application_withdrawn_email,
+            args=(
+                application.job.employer.email,
+                application.job.employer.full_name,
+                application.applicant.full_name,
+                application.job.title,
+            )
+        )
+        thread.daemon = True
+        thread.start()
+
+        application.delete()
+        return Response({'message': 'Application withdrawn successfully'}, status=status.HTTP_204_NO_CONTENT)
 
 class SuggestResumeImprovementsView(APIView):
     permission_classes = [IsAuthenticated]

@@ -798,6 +798,35 @@ const JobSeekerDashboard = () => {
                     >
                       View job →
                     </Link>
+                    <button
+                      onClick={async () => {
+                        if (
+                          !window.confirm(
+                            "Are you sure you want to withdraw this application?",
+                          )
+                        )
+                          return;
+                        try {
+                          await api.delete(`/jobs/applications/${app.id}/`);
+                          setApplications(
+                            applications.filter((a) => a.id !== app.id),
+                          );
+                        } catch {
+                          alert("Failed to withdraw application");
+                        }
+                      }}
+                      style={{
+                        color: "#EF4444",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: 0,
+                      }}
+                    >
+                      Withdraw
+                    </button>
                   </div>
 
                   {/* AI pending */}
