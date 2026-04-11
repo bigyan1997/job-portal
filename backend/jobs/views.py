@@ -102,6 +102,9 @@ class JobListView(APIView):
         return [IsAuthenticated()]
 
     def get(self, request):
+        from django.utils import timezone
+        # Auto-close expired jobs
+        Job.objects.filter(status='active', expires_at__lt=timezone.now()).update(status='closed')
         jobs = Job.objects.filter(status='active').order_by('-created_at')
 
         search = request.query_params.get('search')

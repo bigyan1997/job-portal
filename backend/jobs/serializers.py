@@ -6,6 +6,7 @@ class JobSerializer(serializers.ModelSerializer):
     employer = UserSerializer(read_only=True)  # shows full employer info
     employer_id = serializers.IntegerField(source='employer.id', read_only=True)
     application_count = serializers.SerializerMethodField()
+    is_expired = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Job
@@ -13,7 +14,7 @@ class JobSerializer(serializers.ModelSerializer):
             'id', 'employer', 'employer_id', 'title', 'company', 'location',
             'job_type', 'description', 'requirements',
             'salary_min', 'salary_max', 'status',
-            'application_count', 'created_at'
+            'application_count', 'created_at', 'expires_at', 'is_expired'
         ]
 
     def get_application_count(self, obj):

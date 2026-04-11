@@ -412,11 +412,30 @@ const EmployerDashboard = () => {
                     style={{
                       color: "#9CA3AF",
                       fontSize: "12px",
-                      marginBottom: "20px",
+                      marginBottom: job.expires_at ? "3px" : "20px",
                     }}
                   >
                     💼 {job.job_type.replace("_", " ")}
                   </p>
+                  {job.expires_at && (
+                    <p
+                      style={{
+                        color:
+                          new Date(job.expires_at) <
+                          new Date(Date.now() + 3 * 86400000)
+                            ? "#EF4444"
+                            : "#9CA3AF",
+                        fontSize: "12px",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      📅 Closes{" "}
+                      {new Date(job.expires_at).toLocaleDateString("en-AU", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </p>
+                  )}
 
                   {/* Applicants bar */}
                   <div

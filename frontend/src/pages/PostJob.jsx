@@ -25,6 +25,7 @@ const PostJob = () => {
     requirements: "",
     salary_min: "",
     salary_max: "",
+    expires_at: "",
   });
 
   const handleChange = (e) => {
@@ -36,7 +37,15 @@ const PostJob = () => {
     setError("");
     setLoading(true);
     try {
-      await api.post("/jobs/", formData);
+      const payload = { ...formData };
+      if (payload.expires_at) {
+        payload.expires_at = new Date(
+          payload.expires_at + "T23:59:59",
+        ).toISOString();
+      } else {
+        delete payload.expires_at;
+      }
+      await api.post("/jobs/", payload);
       navigate("/employer", { state: { message: "Job posted successfully!" } });
     } catch (err) {
       setError(err.response?.data?.detail || "Failed to post job");
@@ -322,6 +331,36 @@ const PostJob = () => {
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* Expiry date */}
+              <div>
+                <label style={labelStyle}>
+                  CLOSING DATE{" "}
+                  <span style={{ color: "#9CA3AF", fontWeight: 400 }}>
+                    (optional)
+                  </span>
+                </label>
+                <p
+                  style={{
+                    color: "#9CA3AF",
+                    fontSize: "12px",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Applications will close on this date and the job will be
+                  automatically closed
+                </p>
+                <input
+                  type="date"
+                  name="expires_at"
+                  value={formData.expires_at}
+                  onChange={handleChange}
+                  min={new Date().toISOString().split("T")[0]}
+                  style={inputStyle}
+                  onFocus={(e) => (e.target.style.borderColor = "#2563EB")}
+                  onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
+                />
               </div>
             </div>
           </div>

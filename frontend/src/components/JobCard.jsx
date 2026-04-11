@@ -225,6 +225,24 @@ const JobCard = ({ job, bookmarkedIds = [], onBookmarkChange }) => {
             >
               <span style={{ color: "#D1D5DB", fontSize: "12px" }}>
                 {timeAgo(job.created_at)}
+                {job.expires_at && (
+                  <span
+                    style={{
+                      color:
+                        new Date(job.expires_at) <
+                        new Date(Date.now() + 3 * 86400000)
+                          ? "#EF4444"
+                          : "#9CA3AF",
+                      marginLeft: "8px",
+                    }}
+                  >
+                    · Closes{" "}
+                    {new Date(job.expires_at).toLocaleDateString("en-AU", {
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </span>
+                )}
               </span>
               <span
                 style={{ color: "#2563EB", fontSize: "13px", fontWeight: 500 }}

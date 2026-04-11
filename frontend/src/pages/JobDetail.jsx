@@ -429,6 +429,27 @@ const JobDetail = () => {
                   👥 {job.application_count} applicant
                   {job.application_count !== 1 ? "s" : ""}
                 </span>
+                {job.expires_at && (
+                  <span
+                    style={{
+                      background: "rgba(255,255,255,0.08)",
+                      color:
+                        new Date(job.expires_at) <
+                        new Date(Date.now() + 3 * 86400000)
+                          ? "#FCA5A5"
+                          : "#94A3B8",
+                      fontSize: "12px",
+                      padding: "5px 14px",
+                      borderRadius: "999px",
+                    }}
+                  >
+                    📅 Closes{" "}
+                    {new Date(job.expires_at).toLocaleDateString("en-AU", {
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </span>
+                )}
               </div>
             </div>
           </div>

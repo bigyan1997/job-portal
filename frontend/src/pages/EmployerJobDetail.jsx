@@ -819,6 +819,22 @@ const EmployerJobDetail = () => {
                       ),
                     },
                     {
+                      label: "Closes",
+                      value: job.expires_at
+                        ? new Date(job.expires_at).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : "No closing date",
+                      color:
+                        job.expires_at &&
+                        new Date(job.expires_at) <
+                          new Date(Date.now() + 3 * 86400000)
+                          ? "#EF4444"
+                          : "#374151",
+                    },
+                    {
                       label: "Salary",
                       value:
                         job.salary_min && job.salary_max

@@ -29,6 +29,14 @@ class Job(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def is_expired(self):
+        if not self.expires_at:
+            return False
+        from django.utils import timezone
+        return timezone.now() > self.expires_at
 
     def __str__(self):
         return f"{self.title} at {self.company}"
