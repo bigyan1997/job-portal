@@ -1,5 +1,6 @@
 from django.shortcuts import render
 import os
+import uuid
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,6 +13,7 @@ from .models import User
 import requests
 import cloudinary.uploader
 from .email_service import send_verification_email
+from django.contrib.auth.hashers import make_password
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -123,6 +125,60 @@ class GoogleLoginView(APIView):
             'created': created
         })
 
+class ForgotPasswordView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            # Don't reveal if email exists or not
+            return Response({'message': 'If that email exists, a reset link has been sent.'})
+
+        # Generate reset token
+        user.email_verification_token = uuid.uuid4()
+        user.save()
+
+        frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+        reset_url = f"{frontend_url}/reset-password/{user.email_verification_token}"
+
+        from .email_service import send_password_reset_email
+        send_password_reset_email(
+            user_email=user.email,
+            user_name=user.full_name,
+            reset_url=reset_url,
+        )
+
+        return Response({'message': 'If that email exists, a reset link has been sent.'})
+
+
+class ResetPasswordView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        token = request.data.get('token')
+        new_password = request.data.get('password')
+
+        if not token or not new_password:
+            return Response({'error': 'Token and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(new_password) < 8:
+            return Response({'error': 'Password must be at least 8 characters'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email_verification_token=token)
+        except User.DoesNotExist:
+            return Response({'error': 'Invalid or expired reset link.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.email_verification_token = None  # invalidate token
+        user.save()
+
+        return Response({'message': 'Password reset successfully! You can now log in.'})
 
 class MeView(APIView):
     permission_classes = [IsAuthenticated]

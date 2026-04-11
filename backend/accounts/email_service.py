@@ -57,3 +57,56 @@ def send_verification_email(user_email, user_name, verification_token, frontend_
     except ApiException as e:
         print(f"Failed to send verification email: {e}")
         return False
+  
+def send_password_reset_email(user_email, user_name, reset_url):
+    configuration = sib_api_v3_sdk.Configuration()
+    configuration.api_key['api-key'] = os.getenv('BREVO_API_KEY')
+    api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
+        sib_api_v3_sdk.ApiClient(configuration)
+    )
+
+    html_content = f"""
+<!DOCTYPE html>
+<html>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F8F7F4; margin: 0; padding: 40px 20px;">
+  <div style="max-width: 480px; margin: 0 auto; background: #fff; border-radius: 16px; overflow: hidden;">
+    <div style="background: #0F1923; padding: 32px; text-align: center;">
+      <span style="color: #F1F5F9; font-size: 20px; font-weight: 700;">JobPortal <span style="color: #3B82F6;">AI</span></span>
+    </div>
+    <div style="padding: 40px 32px;">
+      <h1 style="color: #111827; font-size: 24px; font-weight: 700; margin-bottom: 12px;">Reset your password</h1>
+      <p style="color: #6B7280; font-size: 15px; line-height: 1.6; margin-bottom: 32px;">
+        Hi {user_name or 'there'},<br><br>
+        We received a request to reset your password. Click the button below to choose a new one.
+      </p>
+      <a href="{reset_url}" style="display: block; background: #111827; color: #fff; text-align: center; padding: 14px 24px; border-radius: 10px; font-weight: 600; font-size: 15px; text-decoration: none; margin-bottom: 24px;">
+        Reset Password →
+      </a>
+      <p style="color: #9CA3AF; font-size: 13px; line-height: 1.6;">
+        Or copy and paste this link:<br>
+        <a href="{reset_url}" style="color: #2563EB; word-break: break-all;">{reset_url}</a>
+      </p>
+      <hr style="border: none; border-top: 1px solid #F3F4F6; margin: 24px 0;">
+      <p style="color: #9CA3AF; font-size: 12px;">
+        If you didn't request a password reset, you can safely ignore this email. This link expires in 1 hour.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+    """
+
+    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+        to=[{"email": user_email, "name": user_name or "User"}],
+        sender={"email": "karkibigyan05@gmail.com", "name": "JobPortal AI"},
+        subject="Reset your password — JobPortal AI",
+        html_content=html_content,
+    )
+
+    try:
+        api_instance.send_transac_email(send_smtp_email)
+        print(f"Password reset email sent to {user_email}")
+        return True
+    except Exception as e:
+        print(f"Failed to send password reset email: {e}")
+        return False
