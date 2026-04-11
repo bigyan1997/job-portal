@@ -872,7 +872,7 @@ const JobSeekerDashboard = () => {
                             <div
                               style={{
                                 display: "flex",
-                                flexWrap: "wrap",
+                                flexDirection: "column",
                                 gap: "4px",
                               }}
                             >
@@ -886,9 +886,8 @@ const JobSeekerDashboard = () => {
                                       color: "#15803D",
                                       fontSize: "11px",
                                       padding: "4px 10px",
-                                      borderRadius: "999px",
-                                      display: "inline-block",
-                                      maxWidth: "100%",
+                                      borderRadius: "8px",
+                                      display: "block",
                                       wordBreak: "break-word",
                                       lineHeight: 1.4,
                                     }}
@@ -929,9 +928,8 @@ const JobSeekerDashboard = () => {
                                       color: "#B91C1C",
                                       fontSize: "11px",
                                       padding: "4px 10px",
-                                      borderRadius: "999px",
-                                      display: "inline-block",
-                                      maxWidth: "100%",
+                                      borderRadius: "8px",
+                                      display: "block",
                                       wordBreak: "break-word",
                                       lineHeight: 1.4,
                                     }}
