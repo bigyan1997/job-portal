@@ -127,6 +127,7 @@ const JobDetail = () => {
         state: { message: "Application submitted successfully!" },
       });
     } catch (err) {
+      console.log("Apply error:", err.response?.data);
       alert(err.response?.data?.error || "Failed to apply");
     } finally {
       setApplying(false);
@@ -1447,7 +1448,7 @@ const JobDetail = () => {
                     }}
                   >
                     <button
-                      onClick={handleApply}
+                      onClick={() => handleApply()}
                       disabled={applying}
                       style={{
                         flex: 1,

@@ -250,12 +250,31 @@ class ApplicationDetailView(APIView):
         except Application.DoesNotExist:
             return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # only the employer who owns the job can update status
         if application.job.employer != request.user:
             return Response({'error': 'Not allowed'}, status=status.HTTP_403_FORBIDDEN)
 
-        application.status = request.data.get('status', application.status)
+        old_status = application.status
+        new_status = request.data.get('status', application.status)
+        application.status = new_status
         application.save()
+
+        # Send email if status changed to reviewed, shortlisted or rejected
+        if old_status != new_status and new_status in ['reviewed', 'shortlisted', 'rejected']:
+            from accounts.email_service import send_application_status_email
+            import threading
+            thread = threading.Thread(
+                target=send_application_status_email,
+                args=(
+                    application.applicant.email,
+                    application.applicant.full_name,
+                    application.job.title,
+                    application.job.company,
+                    new_status,
+                )
+            )
+            thread.daemon = True
+            thread.start()
+
         return Response(ApplicationSerializer(application).data)
 
 class SuggestResumeImprovementsView(APIView):
