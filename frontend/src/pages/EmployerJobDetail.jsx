@@ -103,7 +103,6 @@ const EmployerJobDetail = () => {
           .employer-skills-grid { grid-template-columns: 1fr !important; }
           .employer-job-info { display: none !important; }
           .employer-header-btns { flex-direction: column !important; }
-          .employer-detail-grid * { max-width: 100%; word-break: break-word; }
           .employer-content { padding: 16px !important; }
         }
       `}</style>
