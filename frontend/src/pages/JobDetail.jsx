@@ -610,19 +610,61 @@ const JobDetail = () => {
               >
                 Already applied!
               </p>
-              <Link
-                to="/dashboard"
+              <div
                 style={{
-                  color: "#15803D",
-                  fontSize: "14px",
-                  textDecoration: "none",
-                  fontWeight: 500,
-                  display: "block",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "16px",
                   marginBottom: "12px",
                 }}
               >
-                View your application →
-              </Link>
+                <Link
+                  to="/dashboard"
+                  style={{
+                    color: "#15803D",
+                    fontSize: "14px",
+                    textDecoration: "none",
+                    fontWeight: 500,
+                  }}
+                >
+                  View your application →
+                </Link>
+                <span style={{ color: "#BBF7D0" }}>|</span>
+                <button
+                  onClick={async () => {
+                    if (
+                      !window.confirm(
+                        "Are you sure you want to withdraw your application?",
+                      )
+                    )
+                      return;
+                    try {
+                      const apps = await api.get("/jobs/applications/");
+                      const app = apps.data.find(
+                        (a) => a.job.id === parseInt(id),
+                      );
+                      if (app) {
+                        await api.delete(`/jobs/applications/${app.id}/`);
+                        setHasApplied(false);
+                      }
+                    } catch {
+                      alert("Failed to withdraw application");
+                    }
+                  }}
+                  style={{
+                    color: "#EF4444",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 0,
+                  }}
+                >
+                  Withdraw →
+                </button>
+              </div>
               <button
                 onClick={async () => {
                   try {
