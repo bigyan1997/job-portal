@@ -20,6 +20,477 @@ const STATIC_STYLES = `
   }
 `;
 
+const formatTime = (dateStr) =>
+  new Date(dateStr).toLocaleTimeString("en-AU", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+const formatDate = (dateStr) => {
+  const date = new Date(dateStr);
+  const diff = Math.floor((new Date() - date) / 86400000);
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Yesterday";
+  return date.toLocaleDateString("en-AU", { month: "short", day: "numeric" });
+};
+
+const ConversationList = ({ loading, conversations, activeConv, onSelectConv }) => (
+  <div
+    style={{
+      background: "#fff",
+      borderRadius: "16px",
+      border: "1px solid #F3F4F6",
+      overflow: "hidden",
+      display: "flex",
+      flexDirection: "column",
+      height: "100%",
+    }}
+  >
+    <div style={{ padding: "16px", borderBottom: "1px solid #F3F4F6" }}>
+      <p style={{ color: "#111827", fontSize: "13px", fontWeight: 700 }}>
+        Conversations
+      </p>
+    </div>
+
+    {loading && (
+      <div
+        style={{
+          padding: "20px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "12px",
+        }}
+      >
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            style={{ display: "flex", gap: "10px", alignItems: "center" }}
+          >
+            <div
+              style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "50%",
+                background: "#F3F4F6",
+              }}
+            />
+            <div style={{ flex: 1 }}>
+              <div
+                style={{
+                  height: "12px",
+                  background: "#F3F4F6",
+                  borderRadius: "4px",
+                  width: "60%",
+                  marginBottom: "6px",
+                }}
+              />
+              <div
+                style={{
+                  height: "10px",
+                  background: "#F9FAFB",
+                  borderRadius: "4px",
+                  width: "80%",
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {!loading && conversations.length === 0 && (
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "24px",
+          textAlign: "center",
+        }}
+      >
+        <div style={{ fontSize: "36px", marginBottom: "12px" }}>💬</div>
+        <p
+          style={{
+            color: "#6B7280",
+            fontSize: "14px",
+            fontWeight: 500,
+            marginBottom: "4px",
+          }}
+        >
+          No messages yet
+        </p>
+        <p style={{ color: "#9CA3AF", fontSize: "12px" }}>
+          Start a conversation from a job listing or application
+        </p>
+      </div>
+    )}
+
+    <div style={{ overflowY: "auto", flex: 1 }}>
+      {conversations.map((conv) => {
+        const other = conv.other_participant;
+        const isActive = activeConv?.id === conv.id;
+        return (
+          <div
+            key={conv.id}
+            onClick={() => onSelectConv(conv)}
+            style={{
+              padding: "14px 16px",
+              cursor: "pointer",
+              background: isActive ? "#EFF6FF" : "transparent",
+              borderLeft: isActive
+                ? "3px solid #2563EB"
+                : "3px solid transparent",
+              borderBottom: "1px solid #F9FAFB",
+              transition: "all 0.15s",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "10px",
+              }}
+            >
+              <div
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "50%",
+                  flexShrink: 0,
+                  background:
+                    other?.role === "employer"
+                      ? "linear-gradient(135deg, #6D28D9, #8B5CF6)"
+                      : "linear-gradient(135deg, #1E40AF, #3B82F6)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: "15px",
+                }}
+              >
+                {other?.full_name?.[0]?.toUpperCase() ||
+                  other?.email?.[0]?.toUpperCase()}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "3px",
+                  }}
+                >
+                  <p
+                    style={{
+                      color: "#111827",
+                      fontSize: "13px",
+                      fontWeight: conv.unread_count > 0 ? 700 : 500,
+                    }}
+                  >
+                    {other?.full_name || other?.email}
+                  </p>
+                  <span
+                    style={{
+                      color: "#9CA3AF",
+                      fontSize: "11px",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {conv.last_message ? formatDate(conv.updated_at) : ""}
+                  </span>
+                </div>
+                {conv.job_title && (
+                  <p
+                    style={{
+                      color: "#2563EB",
+                      fontSize: "11px",
+                      marginBottom: "2px",
+                    }}
+                  >
+                    re: {conv.job_title}
+                  </p>
+                )}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <p
+                    style={{
+                      color: conv.unread_count > 0 ? "#374151" : "#9CA3AF",
+                      fontSize: "12px",
+                      fontWeight: conv.unread_count > 0 ? 500 : 400,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      maxWidth: "160px",
+                    }}
+                  >
+                    {conv.last_message?.content || "No messages yet"}
+                  </p>
+                  {conv.unread_count > 0 && (
+                    <span
+                      style={{
+                        background: "#2563EB",
+                        color: "#fff",
+                        fontSize: "10px",
+                        fontWeight: 700,
+                        width: "18px",
+                        height: "18px",
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {conv.unread_count}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+);
+
+const ChatWindow = ({
+  activeConv,
+  messages,
+  userId,
+  messagesEndRef,
+  newMessage,
+  onMessageChange,
+  onKeyDown,
+  onSend,
+  onBack,
+}) => (
+  <div
+    style={{
+      background: "#fff",
+      borderRadius: "16px",
+      border: "1px solid #F3F4F6",
+      overflow: "hidden",
+      display: "flex",
+      flexDirection: "column",
+      height: "100%",
+    }}
+  >
+    {!activeConv ? (
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "40px",
+          textAlign: "center",
+        }}
+      >
+        <div style={{ fontSize: "48px", marginBottom: "16px" }}>💬</div>
+        <p
+          style={{
+            color: "#111827",
+            fontSize: "16px",
+            fontWeight: 600,
+            marginBottom: "8px",
+          }}
+        >
+          Select a conversation
+        </p>
+        <p style={{ color: "#9CA3AF", fontSize: "14px" }}>
+          Choose a conversation from the left to start messaging
+        </p>
+      </div>
+    ) : (
+      <>
+        <div
+          style={{
+            padding: "16px 20px",
+            borderBottom: "1px solid #F3F4F6",
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            background: "#FAFAFA",
+          }}
+        >
+          <button
+            onClick={onBack}
+            className="mobile-back-btn"
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "#6B7280",
+              fontSize: "20px",
+              padding: "0 4px 0 0",
+              display: "none",
+            }}
+          >
+            ←
+          </button>
+          <div
+            style={{
+              width: "38px",
+              height: "38px",
+              borderRadius: "50%",
+              background:
+                activeConv.other_participant?.role === "employer"
+                  ? "linear-gradient(135deg, #6D28D9, #8B5CF6)"
+                  : "linear-gradient(135deg, #1E40AF, #3B82F6)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: "14px",
+            }}
+          >
+            {activeConv.other_participant?.full_name?.[0]?.toUpperCase() ||
+              activeConv.other_participant?.email?.[0]?.toUpperCase()}
+          </div>
+          <div>
+            <p
+              style={{ color: "#111827", fontWeight: 600, fontSize: "14px" }}
+            >
+              {activeConv.other_participant?.full_name ||
+                activeConv.other_participant?.email}
+            </p>
+            {activeConv.job_title && (
+              <p style={{ color: "#2563EB", fontSize: "12px" }}>
+                re: {activeConv.job_title}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: "20px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px",
+          }}
+        >
+          {messages.length === 0 && (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "40px",
+                color: "#9CA3AF",
+                fontSize: "14px",
+              }}
+            >
+              No messages yet — say hello! 👋
+            </div>
+          )}
+          {messages.map((msg) => {
+            const isMine =
+              msg.sender_id === userId || msg.sender?.id === userId;
+            return (
+              <div
+                key={msg.id}
+                style={{
+                  display: "flex",
+                  justifyContent: isMine ? "flex-end" : "flex-start",
+                }}
+              >
+                <div
+                  style={{
+                    maxWidth: "70%",
+                    background: isMine ? "#111827" : "#F3F4F6",
+                    color: isMine ? "#fff" : "#111827",
+                    padding: "10px 14px",
+                    borderRadius: isMine
+                      ? "16px 16px 4px 16px"
+                      : "16px 16px 16px 4px",
+                    fontSize: "14px",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  <p>{msg.content}</p>
+                  <p
+                    style={{
+                      fontSize: "10px",
+                      color: isMine ? "rgba(255,255,255,0.5)" : "#9CA3AF",
+                      marginTop: "4px",
+                      textAlign: "right",
+                    }}
+                  >
+                    {formatTime(msg.created_at)}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+          <div ref={messagesEndRef} />
+        </div>
+
+        <div
+          style={{
+            padding: "12px 16px",
+            borderTop: "1px solid #F3F4F6",
+            display: "flex",
+            gap: "8px",
+            alignItems: "flex-end",
+            background: "#FAFAFA",
+          }}
+        >
+          <textarea
+            value={newMessage}
+            onChange={onMessageChange}
+            onKeyDown={onKeyDown}
+            placeholder="Type a message..."
+            rows={1}
+            style={{
+              flex: 1,
+              border: "1px solid #E5E7EB",
+              borderRadius: "12px",
+              padding: "10px 14px",
+              fontSize: "14px",
+              outline: "none",
+              resize: "none",
+              lineHeight: 1.5,
+              background: "#fff",
+              maxHeight: "120px",
+            }}
+          />
+          <button
+            onClick={onSend}
+            disabled={!newMessage.trim()}
+            style={{
+              background: newMessage.trim() ? "#111827" : "#E5E7EB",
+              color: newMessage.trim() ? "#fff" : "#9CA3AF",
+              border: "none",
+              borderRadius: "12px",
+              padding: "10px 16px",
+              fontSize: "14px",
+              fontWeight: 600,
+              cursor: newMessage.trim() ? "pointer" : "not-allowed",
+              flexShrink: 0,
+              transition: "all 0.15s",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Send →
+          </button>
+        </div>
+      </>
+    )}
+  </div>
+);
+
 const Messages = () => {
   const { user } = useAuth();
   const [conversations, setConversations] = useState([]);
@@ -148,470 +619,14 @@ const Messages = () => {
     setShowChat(true);
   }, []);
 
-  const formatTime = (dateStr) =>
-    new Date(dateStr).toLocaleTimeString("en-AU", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    const diff = Math.floor((new Date() - date) / 86400000);
-    if (diff === 0) return "Today";
-    if (diff === 1) return "Yesterday";
-    return date.toLocaleDateString("en-AU", { month: "short", day: "numeric" });
-  };
+  const handleMessageChange = useCallback(
+    (e) => setNewMessage(e.target.value),
+    [],
+  );
 
   const totalUnread = conversations.reduce(
     (sum, c) => sum + (c.unread_count || 0),
     0,
-  );
-
-  const ConversationList = () => (
-    <div
-      style={{
-        background: "#fff",
-        borderRadius: "16px",
-        border: "1px solid #F3F4F6",
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-      }}
-    >
-      <div style={{ padding: "16px", borderBottom: "1px solid #F3F4F6" }}>
-        <p style={{ color: "#111827", fontSize: "13px", fontWeight: 700 }}>
-          Conversations
-        </p>
-      </div>
-
-      {loading && (
-        <div
-          style={{
-            padding: "20px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "12px",
-          }}
-        >
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              style={{ display: "flex", gap: "10px", alignItems: "center" }}
-            >
-              <div
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "50%",
-                  background: "#F3F4F6",
-                }}
-              />
-              <div style={{ flex: 1 }}>
-                <div
-                  style={{
-                    height: "12px",
-                    background: "#F3F4F6",
-                    borderRadius: "4px",
-                    width: "60%",
-                    marginBottom: "6px",
-                  }}
-                />
-                <div
-                  style={{
-                    height: "10px",
-                    background: "#F9FAFB",
-                    borderRadius: "4px",
-                    width: "80%",
-                  }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {!loading && conversations.length === 0 && (
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "24px",
-            textAlign: "center",
-          }}
-        >
-          <div style={{ fontSize: "36px", marginBottom: "12px" }}>💬</div>
-          <p
-            style={{
-              color: "#6B7280",
-              fontSize: "14px",
-              fontWeight: 500,
-              marginBottom: "4px",
-            }}
-          >
-            No messages yet
-          </p>
-          <p style={{ color: "#9CA3AF", fontSize: "12px" }}>
-            Start a conversation from a job listing or application
-          </p>
-        </div>
-      )}
-
-      <div style={{ overflowY: "auto", flex: 1 }}>
-        {conversations.map((conv) => {
-          const other = conv.other_participant;
-          const isActive = activeConv?.id === conv.id;
-          return (
-            <div
-              key={conv.id}
-              onClick={() => handleSelectConv(conv)}
-              style={{
-                padding: "14px 16px",
-                cursor: "pointer",
-                background: isActive ? "#EFF6FF" : "transparent",
-                borderLeft: isActive
-                  ? "3px solid #2563EB"
-                  : "3px solid transparent",
-                borderBottom: "1px solid #F9FAFB",
-                transition: "all 0.15s",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: "10px",
-                }}
-              >
-                <div
-                  style={{
-                    width: "40px",
-                    height: "40px",
-                    borderRadius: "50%",
-                    flexShrink: 0,
-                    background:
-                      other?.role === "employer"
-                        ? "linear-gradient(135deg, #6D28D9, #8B5CF6)"
-                        : "linear-gradient(135deg, #1E40AF, #3B82F6)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#fff",
-                    fontWeight: 700,
-                    fontSize: "15px",
-                  }}
-                >
-                  {other?.full_name?.[0]?.toUpperCase() ||
-                    other?.email?.[0]?.toUpperCase()}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginBottom: "3px",
-                    }}
-                  >
-                    <p
-                      style={{
-                        color: "#111827",
-                        fontSize: "13px",
-                        fontWeight: conv.unread_count > 0 ? 700 : 500,
-                      }}
-                    >
-                      {other?.full_name || other?.email}
-                    </p>
-                    <span
-                      style={{
-                        color: "#9CA3AF",
-                        fontSize: "11px",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {conv.last_message ? formatDate(conv.updated_at) : ""}
-                    </span>
-                  </div>
-                  {conv.job_title && (
-                    <p
-                      style={{
-                        color: "#2563EB",
-                        fontSize: "11px",
-                        marginBottom: "2px",
-                      }}
-                    >
-                      re: {conv.job_title}
-                    </p>
-                  )}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <p
-                      style={{
-                        color: conv.unread_count > 0 ? "#374151" : "#9CA3AF",
-                        fontSize: "12px",
-                        fontWeight: conv.unread_count > 0 ? 500 : 400,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        maxWidth: "160px",
-                      }}
-                    >
-                      {conv.last_message?.content || "No messages yet"}
-                    </p>
-                    {conv.unread_count > 0 && (
-                      <span
-                        style={{
-                          background: "#2563EB",
-                          color: "#fff",
-                          fontSize: "10px",
-                          fontWeight: 700,
-                          width: "18px",
-                          height: "18px",
-                          borderRadius: "50%",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexShrink: 0,
-                        }}
-                      >
-                        {conv.unread_count}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-
-  const ChatWindow = () => (
-    <div
-      style={{
-        background: "#fff",
-        borderRadius: "16px",
-        border: "1px solid #F3F4F6",
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-      }}
-    >
-      {!activeConv ? (
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "40px",
-            textAlign: "center",
-          }}
-        >
-          <div style={{ fontSize: "48px", marginBottom: "16px" }}>💬</div>
-          <p
-            style={{
-              color: "#111827",
-              fontSize: "16px",
-              fontWeight: 600,
-              marginBottom: "8px",
-            }}
-          >
-            Select a conversation
-          </p>
-          <p style={{ color: "#9CA3AF", fontSize: "14px" }}>
-            Choose a conversation from the left to start messaging
-          </p>
-        </div>
-      ) : (
-        <>
-          <div
-            style={{
-              padding: "16px 20px",
-              borderBottom: "1px solid #F3F4F6",
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              background: "#FAFAFA",
-            }}
-          >
-            <button
-              onClick={() => setShowChat(false)}
-              className="mobile-back-btn"
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: "#6B7280",
-                fontSize: "20px",
-                padding: "0 4px 0 0",
-                display: "none",
-              }}
-            >
-              ←
-            </button>
-            <div
-              style={{
-                width: "38px",
-                height: "38px",
-                borderRadius: "50%",
-                background:
-                  activeConv.other_participant?.role === "employer"
-                    ? "linear-gradient(135deg, #6D28D9, #8B5CF6)"
-                    : "linear-gradient(135deg, #1E40AF, #3B82F6)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-                fontWeight: 700,
-                fontSize: "14px",
-              }}
-            >
-              {activeConv.other_participant?.full_name?.[0]?.toUpperCase() ||
-                activeConv.other_participant?.email?.[0]?.toUpperCase()}
-            </div>
-            <div>
-              <p
-                style={{ color: "#111827", fontWeight: 600, fontSize: "14px" }}
-              >
-                {activeConv.other_participant?.full_name ||
-                  activeConv.other_participant?.email}
-              </p>
-              {activeConv.job_title && (
-                <p style={{ color: "#2563EB", fontSize: "12px" }}>
-                  re: {activeConv.job_title}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div
-            style={{
-              flex: 1,
-              overflowY: "auto",
-              padding: "20px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "12px",
-            }}
-          >
-            {messages.length === 0 && (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "40px",
-                  color: "#9CA3AF",
-                  fontSize: "14px",
-                }}
-              >
-                No messages yet — say hello! 👋
-              </div>
-            )}
-            {messages.map((msg) => {
-              const isMine =
-                msg.sender_id === user.id || msg.sender?.id === user.id;
-              return (
-                <div
-                  key={msg.id}
-                  style={{
-                    display: "flex",
-                    justifyContent: isMine ? "flex-end" : "flex-start",
-                  }}
-                >
-                  <div
-                    style={{
-                      maxWidth: "70%",
-                      background: isMine ? "#111827" : "#F3F4F6",
-                      color: isMine ? "#fff" : "#111827",
-                      padding: "10px 14px",
-                      borderRadius: isMine
-                        ? "16px 16px 4px 16px"
-                        : "16px 16px 16px 4px",
-                      fontSize: "14px",
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    <p>{msg.content}</p>
-                    <p
-                      style={{
-                        fontSize: "10px",
-                        color: isMine ? "rgba(255,255,255,0.5)" : "#9CA3AF",
-                        marginTop: "4px",
-                        textAlign: "right",
-                      }}
-                    >
-                      {formatTime(msg.created_at)}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-            <div ref={messagesEndRef} />
-          </div>
-
-          <div
-            style={{
-              padding: "12px 16px",
-              borderTop: "1px solid #F3F4F6",
-              display: "flex",
-              gap: "8px",
-              alignItems: "flex-end",
-              background: "#FAFAFA",
-            }}
-          >
-            <textarea
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type a message..."
-              rows={1}
-              style={{
-                flex: 1,
-                border: "1px solid #E5E7EB",
-                borderRadius: "12px",
-                padding: "10px 14px",
-                fontSize: "14px",
-                outline: "none",
-                resize: "none",
-                lineHeight: 1.5,
-                background: "#fff",
-                maxHeight: "120px",
-              }}
-            />
-            <button
-              onClick={sendMessage}
-              disabled={!newMessage.trim()}
-              style={{
-                background: newMessage.trim() ? "#111827" : "#E5E7EB",
-                color: newMessage.trim() ? "#fff" : "#9CA3AF",
-                border: "none",
-                borderRadius: "12px",
-                padding: "10px 16px",
-                fontSize: "14px",
-                fontWeight: 600,
-                cursor: newMessage.trim() ? "pointer" : "not-allowed",
-                flexShrink: 0,
-                transition: "all 0.15s",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Send →
-            </button>
-          </div>
-        </>
-      )}
-    </div>
   );
 
   return (
@@ -667,14 +682,29 @@ const Messages = () => {
             className="mobile-sidebar"
             style={{ height: "100%", display: "none", flexDirection: "column" }}
           >
-            <ConversationList />
+            <ConversationList
+              loading={loading}
+              conversations={conversations}
+              activeConv={activeConv}
+              onSelectConv={handleSelectConv}
+            />
           </div>
         ) : (
           <div
             className="mobile-chat"
             style={{ height: "100%", display: "none", flexDirection: "column" }}
           >
-            <ChatWindow />
+            <ChatWindow
+              activeConv={activeConv}
+              messages={messages}
+              userId={user?.id}
+              messagesEndRef={messagesEndRef}
+              newMessage={newMessage}
+              onMessageChange={handleMessageChange}
+              onKeyDown={handleKeyDown}
+              onSend={sendMessage}
+              onBack={() => setShowChat(false)}
+            />
           </div>
         )}
 
@@ -688,8 +718,23 @@ const Messages = () => {
             height: "100%",
           }}
         >
-          <ConversationList />
-          <ChatWindow />
+          <ConversationList
+            loading={loading}
+            conversations={conversations}
+            activeConv={activeConv}
+            onSelectConv={handleSelectConv}
+          />
+          <ChatWindow
+            activeConv={activeConv}
+            messages={messages}
+            userId={user?.id}
+            messagesEndRef={messagesEndRef}
+            newMessage={newMessage}
+            onMessageChange={handleMessageChange}
+            onKeyDown={handleKeyDown}
+            onSend={sendMessage}
+            onBack={() => setShowChat(false)}
+          />
         </div>
       </div>
     </div>
