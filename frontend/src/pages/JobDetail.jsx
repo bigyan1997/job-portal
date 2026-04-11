@@ -14,6 +14,7 @@ const JobDetail = () => {
   const [hasApplied, setHasApplied] = useState(false);
   const [applying, setApplying] = useState(false);
   const [analysing, setAnalysing] = useState(false);
+  const [analysingMessage, setAnalysingMessage] = useState("Analysing...");
   const [analysis, setAnalysis] = useState(null);
   const [coverLetter, setCoverLetter] = useState("");
   const [analyseError, setAnalyseError] = useState("");
@@ -48,13 +49,33 @@ const JobDetail = () => {
     setAnalyseError("");
     setLimitReached(false);
     setAnalysing(true);
+    setAnalysingMessage("Reading your resume...");
+
+    const messages = [
+      "Reading your resume...",
+      "Matching skills to job requirements...",
+      "Calculating match score...",
+      "Generating cover letter...",
+      "Almost done...",
+    ];
+
+    let i = 0;
+    const interval = setInterval(() => {
+      i++;
+      if (i < messages.length) {
+        setAnalysingMessage(messages[i]);
+      }
+    }, 4000);
+
     try {
       const res = await api.post("/jobs/analyse/", { job_id: id });
+      clearInterval(interval);
       setAnalysis(res.data);
       setCoverLetter(res.data.cover_letter);
       const updatedUser = await api.get("/auth/me/");
       updateUser(updatedUser.data);
     } catch (err) {
+      clearInterval(interval);
       if (err.response?.status === 402) {
         setLimitReached(true);
       } else {
@@ -872,7 +893,7 @@ const JobDetail = () => {
                                 d="M4 12a8 8 0 018-8v8z"
                               />
                             </svg>
-                            Analysing...
+                            {analysingMessage}
                           </>
                         ) : (
                           <>
@@ -893,6 +914,18 @@ const JobDetail = () => {
                           </>
                         )}
                       </button>
+                      {analysing && (
+                        <p
+                          style={{
+                            color: "#9CA3AF",
+                            fontSize: "12px",
+                            marginTop: "12px",
+                          }}
+                        >
+                          This usually takes 15–30 seconds. Please don't refresh
+                          the page.
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
