@@ -543,7 +543,7 @@ const EmployerJobDetail = () => {
                               <div
                                 style={{
                                   display: "flex",
-                                  flexWrap: "wrap",
+                                  flexDirection: "column",
                                   gap: "4px",
                                 }}
                               >
@@ -562,8 +562,12 @@ const EmployerJobDetail = () => {
                                         background: "#DCFCE7",
                                         color: "#15803D",
                                         fontSize: "11px",
-                                        padding: "3px 10px",
-                                        borderRadius: "999px",
+                                        padding: "4px 10px",
+                                        borderRadius: "8px",
+                                        display: "block",
+                                        wordBreak: "break-word",
+                                        lineHeight: 1.5,
+                                        marginBottom: "4px",
                                       }}
                                     >
                                       {skill}
@@ -606,7 +610,7 @@ const EmployerJobDetail = () => {
                               <div
                                 style={{
                                   display: "flex",
-                                  flexWrap: "wrap",
+                                  flexDirection: "column",
                                   gap: "4px",
                                 }}
                               >
@@ -625,8 +629,12 @@ const EmployerJobDetail = () => {
                                         background: "#FEE2E2",
                                         color: "#B91C1C",
                                         fontSize: "11px",
-                                        padding: "3px 10px",
-                                        borderRadius: "999px",
+                                        padding: "4px 10px",
+                                        borderRadius: "8px",
+                                        display: "block",
+                                        wordBreak: "break-word",
+                                        lineHeight: 1.5,
+                                        marginBottom: "4px",
                                       }}
                                     >
                                       {skill}
