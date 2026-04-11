@@ -291,6 +291,102 @@ const JobSeekerDashboard = () => {
           </div>
         )}
 
+        {/* Profile completion banner */}
+        {!user?.profile_completed && (
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "16px",
+              border: "1px solid #FEF9C3",
+              padding: "20px 24px",
+              marginBottom: "20px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "16px",
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ flex: 1 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  marginBottom: "8px",
+                }}
+              >
+                <span style={{ fontSize: "18px" }}>📋</span>
+                <p
+                  style={{
+                    color: "#111827",
+                    fontSize: "14px",
+                    fontWeight: 700,
+                  }}
+                >
+                  Complete your profile
+                </p>
+                <span
+                  style={{
+                    background: "#FEF9C3",
+                    color: "#A16207",
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    padding: "2px 8px",
+                    borderRadius: "999px",
+                  }}
+                >
+                  {(([
+                    user?.full_name,
+                    user?.phone,
+                    user?.bio,
+                    user?.city,
+                    user?.linkedin,
+                    user?.portfolio,
+                  ].filter(Boolean).length *
+                    100) /
+                    6) |
+                    0}
+                  % done
+                </span>
+              </div>
+              <div
+                style={{
+                  background: "#F3F4F6",
+                  borderRadius: "999px",
+                  height: "6px",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    borderRadius: "999px",
+                    background: "#EAB308",
+                    width: `${(([user?.full_name, user?.phone, user?.bio, user?.city, user?.linkedin, user?.portfolio].filter(Boolean).length * 100) / 6) | 0}%`,
+                    transition: "width 0.3s",
+                  }}
+                />
+              </div>
+            </div>
+            <Link
+              to="/profile"
+              style={{
+                background: "#111827",
+                color: "#fff",
+                padding: "10px 20px",
+                borderRadius: "10px",
+                fontSize: "13px",
+                fontWeight: 600,
+                textDecoration: "none",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Complete Profile →
+            </Link>
+          </div>
+        )}
+
         {/* Two column grid */}
         <div
           className="dashboard-grid"
