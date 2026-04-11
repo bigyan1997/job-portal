@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import JobListView, JobDetailView, ApplicationView, ApplicationDetailView, AnalyseResumeView, MyJobsView
+from .views import JobListView, JobDetailView, ApplicationView, ApplicationDetailView, AnalyseResumeView, MyJobsView, SuggestResumeImprovementsView
 
 urlpatterns = [
     path('', JobListView.as_view()),               # GET all jobs / POST new job
@@ -8,6 +8,7 @@ urlpatterns = [
     path('applications/', ApplicationView.as_view()),  # GET / POST applications
     path('applications/<int:pk>/', ApplicationDetailView.as_view()),
     path('analyse/', AnalyseResumeView.as_view()),
+    path('suggest-improvements/', SuggestResumeImprovementsView.as_view()),
 
 
 ]

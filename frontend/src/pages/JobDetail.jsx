@@ -19,6 +19,9 @@ const JobDetail = () => {
   const [coverLetter, setCoverLetter] = useState("");
   const [analyseError, setAnalyseError] = useState("");
   const [limitReached, setLimitReached] = useState(false);
+  const [suggestions, setSuggestions] = useState(null);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     if (user?.is_pro) setLimitReached(false);
@@ -86,9 +89,32 @@ const JobDetail = () => {
     }
   };
 
+  const handleSuggestImprovements = async () => {
+    // If already fetched, just toggle visibility
+    if (suggestions) {
+      setShowSuggestions((prev) => !prev);
+      return;
+    }
+    setSuggestionsLoading(true);
+    setShowSuggestions(true);
+    try {
+      const res = await api.post("/jobs/suggest-improvements/", {
+        job_id: id,
+        missing_skills: analysis.missing_skills,
+      });
+      setSuggestions(res.data);
+    } catch (err) {
+      alert("Failed to get suggestions");
+      setShowSuggestions(false);
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  };
+
   const handleApply = async (overrideCoverLetter) => {
     setApplying(true);
-    const letter = overrideCoverLetter !== undefined ? overrideCoverLetter : coverLetter;
+    const letter =
+      overrideCoverLetter !== undefined ? overrideCoverLetter : coverLetter;
     try {
       await api.post("/jobs/applications/", {
         job_id: id,
@@ -1157,6 +1183,217 @@ const JobDetail = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Improve resume button */}
+                  {analysis.missing_skills.length > 0 && (
+                    <div style={{ marginBottom: "24px" }}>
+                      <button
+                        onClick={handleSuggestImprovements}
+                        disabled={suggestionsLoading}
+                        style={{
+                          width: "100%",
+                          background:
+                            "linear-gradient(135deg, #1D4ED8, #2563EB)",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "10px",
+                          padding: "14px",
+                          fontSize: "14px",
+                          fontWeight: 600,
+                          cursor: suggestionsLoading
+                            ? "not-allowed"
+                            : "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        {suggestionsLoading ? (
+                          <>
+                            <svg
+                              className="animate-spin h-4 w-4"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              />
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8v8z"
+                              />
+                            </svg>
+                            Generating suggestions...
+                          </>
+                        ) : (
+                          <>
+                            {showSuggestions
+                              ? "Hide suggestions ↑"
+                              : "✨ How to add missing skills to my resume"}
+                          </>
+                        )}
+                      </button>
+
+                      {/* Suggestions panel */}
+                      {showSuggestions && suggestions && (
+                        <div
+                          style={{
+                            marginTop: "16px",
+                            background: "#F8F7FF",
+                            border: "1px solid #DDD6FE",
+                            borderRadius: "12px",
+                            padding: "20px",
+                          }}
+                        >
+                          <p
+                            style={{
+                              color: "#5B21B6",
+                              fontSize: "13px",
+                              fontWeight: 700,
+                              marginBottom: "16px",
+                              letterSpacing: "0.05em",
+                            }}
+                          >
+                            ✨ AI RESUME IMPROVEMENT SUGGESTIONS
+                          </p>
+
+                          {suggestions.general_tips && (
+                            <div
+                              style={{
+                                background: "#EDE9FE",
+                                borderRadius: "8px",
+                                padding: "12px 14px",
+                                marginBottom: "16px",
+                              }}
+                            >
+                              <p
+                                style={{
+                                  color: "#5B21B6",
+                                  fontSize: "13px",
+                                  lineHeight: 1.6,
+                                }}
+                              >
+                                💡 {suggestions.general_tips}
+                              </p>
+                            </div>
+                          )}
+
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "12px",
+                            }}
+                          >
+                            {suggestions.suggestions?.map((s, i) => (
+                              <div
+                                key={i}
+                                style={{
+                                  background: "#fff",
+                                  border: "1px solid #DDD6FE",
+                                  borderRadius: "10px",
+                                  padding: "16px",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    marginBottom: "8px",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      background: "#EDE9FE",
+                                      color: "#5B21B6",
+                                      fontSize: "11px",
+                                      fontWeight: 700,
+                                      padding: "3px 10px",
+                                      borderRadius: "999px",
+                                    }}
+                                  >
+                                    {s.skill}
+                                  </span>
+                                  <span
+                                    style={{
+                                      color: "#9CA3AF",
+                                      fontSize: "11px",
+                                    }}
+                                  >
+                                    📍 {s.where_to_add}
+                                  </span>
+                                </div>
+                                <p
+                                  style={{
+                                    color: "#374151",
+                                    fontSize: "13px",
+                                    lineHeight: 1.6,
+                                    marginBottom: "8px",
+                                    fontStyle: "italic",
+                                  }}
+                                >
+                                  "{s.suggested_text}"
+                                </p>
+                                {s.tip && (
+                                  <p
+                                    style={{
+                                      color: "#6B7280",
+                                      fontSize: "12px",
+                                      lineHeight: 1.5,
+                                    }}
+                                  >
+                                    💬 {s.tip}
+                                  </p>
+                                )}
+                                <button
+                                  onClick={() =>
+                                    navigator.clipboard.writeText(
+                                      s.suggested_text,
+                                    )
+                                  }
+                                  style={{
+                                    marginTop: "8px",
+                                    color: "#2563EB",
+                                    fontSize: "12px",
+                                    background: "none",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  Copy →
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+
+                          <button
+                            onClick={() => setShowSuggestions(false)}
+                            style={{
+                              marginTop: "12px",
+                              color: "#9CA3AF",
+                              fontSize: "12px",
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              width: "100%",
+                              textAlign: "center",
+                            }}
+                          >
+                            Hide suggestions
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Cover letter */}
                   <div style={{ marginBottom: "20px" }}>

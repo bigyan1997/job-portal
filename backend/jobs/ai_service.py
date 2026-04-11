@@ -160,3 +160,60 @@ Return ONLY this JSON structure:
     except Exception as e:
         print(f'Gemini error: {e}')
         return None
+
+def suggest_resume_improvements(resume_file_path, missing_skills, job_title):
+    """
+    Send resume + missing skills to Gemini and get specific suggestions
+    on how to incorporate those skills into the resume
+    """
+    actual_path = get_resume_path(resume_file_path)
+    if not actual_path:
+        print('Could not get resume path')
+        return None
+
+    resume_text = extract_text_from_pdf(actual_path)
+    if not resume_text:
+        print('No text extracted from PDF')
+        return None
+
+    missing_skills_str = ', '.join(missing_skills) if isinstance(missing_skills, list) else missing_skills
+
+    prompt = f"""
+You are an expert resume writer, career coach, and HR specialist. A candidate is applying for a {job_title} role.
+
+Their resume is missing these skills: {missing_skills_str}
+
+Here is their current resume:
+{resume_text}
+
+For each missing skill, provide a specific, actionable suggestion on how to add it to their resume.
+Consider their existing experience and suggest where exactly it would fit naturally.
+
+Return ONLY raw JSON, no markdown:
+{{
+    "suggestions": [
+        {{
+            "skill": "<missing skill name>",
+            "where_to_add": "<which section of their resume, e.g. Skills, Work Experience at Company X>",
+            "suggested_text": "<exact bullet point or sentence they can copy-paste>",
+            "tip": "<brief explanation of why this helps>"
+        }}
+    ],
+    "general_tips": "<2-3 sentences of general advice for this candidate>"
+}}
+"""
+
+    try:
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type='application/json',
+            ),
+        )
+        raw = response.text.strip()
+        print(f'Resume suggestions response: {raw[:200]}')
+        return json.loads(raw)
+    except Exception as e:
+        print(f'Resume suggestions error: {e}')
+        return None

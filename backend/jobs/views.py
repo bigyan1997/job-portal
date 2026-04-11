@@ -257,3 +257,36 @@ class ApplicationDetailView(APIView):
         application.status = request.data.get('status', application.status)
         application.save()
         return Response(ApplicationSerializer(application).data)
+
+class SuggestResumeImprovementsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        job_id = request.data.get('job_id')
+        missing_skills = request.data.get('missing_skills', [])
+
+        if not job_id:
+            return Response({'error': 'job_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not request.user.resume:
+            return Response({'error': 'No resume found'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not missing_skills:
+            return Response({'error': 'No missing skills provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            job = Job.objects.get(pk=job_id)
+        except Job.DoesNotExist:
+            return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        from .ai_service import suggest_resume_improvements
+        result = suggest_resume_improvements(
+            resume_file_path=request.user.resume,
+            missing_skills=missing_skills,
+            job_title=job.title,
+        )
+
+        if not result:
+            return Response({'error': 'Failed to generate suggestions'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response(result)
