@@ -711,9 +711,11 @@ const EmployerJobDetail = () => {
                       )}
 
                       {/* Resume */}
-                      {app.resume && (
+                      {(app.applicant?.resume || app.resume) && (
                         <a
-                          href={getResumeUrl(app.resume)}
+                          href={getResumeUrl(
+                            app.applicant?.resume || app.resume,
+                          )}
                           target="_blank"
                           rel="noreferrer"
                           style={{

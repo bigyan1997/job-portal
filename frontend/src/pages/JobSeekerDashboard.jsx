@@ -914,7 +914,7 @@ const JobSeekerDashboard = () => {
                             <div
                               style={{
                                 display: "flex",
-                                flexWrap: "wrap",
+                                flexDirection: "column",
                                 gap: "4px",
                               }}
                             >
