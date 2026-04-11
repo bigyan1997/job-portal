@@ -97,6 +97,14 @@ const EmployerJobDetail = () => {
 
   return (
     <div style={{ minHeight: "100vh", background: "#F8F7F4" }}>
+      <style>{`
+      @media (max-width: 768px) {
+        .employer-detail-grid { grid-template-columns: 1fr !important; }
+        .employer-skills-grid { grid-template-columns: 1fr !important; }
+        .employer-job-info { display: none !important; }
+        .employer-header-btns { flex-direction: column !important; }
+      }
+    `}</style>
       {/* Header */}
       <div style={{ background: "#0F1923", padding: "32px 24px" }}>
         <div style={{ maxWidth: "860px", margin: "0 auto" }}>
@@ -225,6 +233,7 @@ const EmployerJobDetail = () => {
         style={{ maxWidth: "1100px", margin: "0 auto", padding: "32px 24px" }}
       >
         <div
+          className="employer-detail-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 360px",
@@ -520,6 +529,7 @@ const EmployerJobDetail = () => {
                       {/* Skills */}
                       {(app.matching_skills || app.missing_skills) && (
                         <div
+                          className="employer-skills-grid"
                           style={{
                             display: "grid",
                             gridTemplateColumns: "1fr 1fr",
@@ -747,7 +757,10 @@ const EmployerJobDetail = () => {
           </div>
 
           {/* Right — job details card (sticky) */}
-          <div style={{ position: "sticky", top: "80px" }}>
+          <div
+            className="employer-job-info"
+            style={{ position: "sticky", top: "80px" }}
+          >
             <div
               style={{
                 background: "#fff",
