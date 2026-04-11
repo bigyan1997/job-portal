@@ -436,10 +436,12 @@ const Navbar = () => {
                       user?.role === "jobseeker" && {
                         to: "/dashboard",
                         label: "📋 Dashboard",
+                        key: "dashboard",
                       },
                       user?.role === "jobseeker" && {
                         to: "/dashboard",
                         label: "🔖 Saved Jobs",
+                        key: "saved-jobs",
                       },
                       user?.role === "jobseeker" && {
                         to: "/messages",
@@ -467,7 +469,7 @@ const Navbar = () => {
                       .filter(Boolean)
                       .map((item) => (
                         <Link
-                          key={item.to}
+                          key={item.key || item.to}
                           to={item.to}
                           onClick={() => setMenuOpen(false)}
                           style={{
@@ -674,10 +676,12 @@ const Navbar = () => {
               user?.role === "jobseeker" && {
                 to: "/dashboard",
                 label: "📋 Dashboard",
+                key: "mob-dashboard",
               },
               user?.role === "jobseeker" && {
                 to: "/dashboard",
                 label: "🔖 Saved Jobs",
+                key: "mob-saved",
               },
               user?.role === "jobseeker" && {
                 to: "/messages",
@@ -713,7 +717,7 @@ const Navbar = () => {
               .filter(Boolean)
               .map((item) => (
                 <Link
-                  key={item.to}
+                  key={item.key || item.to}
                   to={item.to}
                   onClick={() => setMobileOpen(false)}
                   style={{
