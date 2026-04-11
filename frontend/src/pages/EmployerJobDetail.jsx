@@ -366,6 +366,7 @@ const EmployerJobDetail = () => {
                           justifyContent: "space-between",
                           gap: "12px",
                           marginBottom: "16px",
+                          flexWrap: "wrap",
                         }}
                       >
                         <div
