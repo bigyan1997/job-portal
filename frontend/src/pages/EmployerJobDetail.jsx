@@ -282,6 +282,8 @@ const EmployerJobDetail = () => {
                     fontSize: "14px",
                     lineHeight: 1.8,
                     whiteSpace: "pre-line",
+                    wordBreak: "break-word",
+                    overflowWrap: "break-word",
                   }}
                 >
                   {job.description}
@@ -304,9 +306,11 @@ const EmployerJobDetail = () => {
                     fontSize: "14px",
                     lineHeight: 1.8,
                     whiteSpace: "pre-line",
+                    wordBreak: "break-word",
+                    overflowWrap: "break-word",
                   }}
                 >
-                  {job.requirements}
+                  {job.description}
                 </p>
               </div>
             </div>
@@ -431,6 +435,8 @@ const EmployerJobDetail = () => {
                             alignItems: "center",
                             gap: "10px",
                             flexShrink: 0,
+                            flexWrap: "wrap",
+                            justifyContent: "flex-end",
                           }}
                         >
                           {app.match_score !== null && (
