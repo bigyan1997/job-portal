@@ -20,6 +20,12 @@ const EmployerJobDetail = () => {
   const toggleSkills = (key) => {
     setExpandedSkills((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+  const getResumeUrl = (resume) => {
+    if (!resume) return null;
+    if (resume.startsWith("http")) return resume;
+    const cleaned = resume.replace(/^\/?media\//, "");
+    return `https://res.cloudinary.com/dauaetfqc/raw/upload/${cleaned}`;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
