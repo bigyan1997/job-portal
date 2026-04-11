@@ -47,7 +47,6 @@ CORS_ALLOWED_ORIGINS = os.getenv(
     'CORS_ALLOWED_ORIGINS',
     'http://localhost:5173'
 ).split(',')
-CORS_ALLOW_ALL_ORIGINS = True
 # Allow all Railway subdomains
 if os.getenv('RAILWAY_STATIC_URL'):
     ALLOWED_HOSTS.append(os.getenv('RAILWAY_STATIC_URL'))
@@ -100,9 +99,6 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -153,6 +149,9 @@ CLOUDINARY_STORAGE = {
     'STATIC_VIDEOS_EXTENSIONS': ['mp4', 'webm', 'flv', 'mov', 'ogv', 'ogg', 'ogx', 'wmv', 'mpeg', 'flv', '3gp', '3g2', 'avi', 'mpg'],
 }
 
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 STATICFILES_DIRS = []
 STORAGES = {
     "default": {
@@ -164,9 +163,6 @@ STORAGES = {
 }
 
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
-
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATIC_URL = '/static/'
 
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
 
@@ -197,12 +193,5 @@ CHANNEL_LAYERS = {
 WHITENOISE_USE_FINDERS = True
 WHITENOISE_AUTOREFRESH = True
 
-# Email configuration
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 465
-EMAIL_USE_SSL = True
-EMAIL_USE_TLS = False
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = f'JobPortal AI <{os.getenv("EMAIL_HOST_USER")}>'
+# Email is handled via Brevo SDK in accounts/email_service.py
+BREVO_API_KEY = os.getenv('BREVO_API_KEY')
