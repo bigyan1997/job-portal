@@ -32,6 +32,7 @@ const EditJob = () => {
     salary_min: "",
     salary_max: "",
     status: "active",
+    expires_at: "",
   });
 
   useEffect(() => {
@@ -49,6 +50,7 @@ const EditJob = () => {
           salary_min: job.salary_min || "",
           salary_max: job.salary_max || "",
           status: job.status,
+          expires_at: job.expires_at ? job.expires_at.split("T")[0] : "",
         });
       } catch {
         setError("Failed to load job");
@@ -68,7 +70,15 @@ const EditJob = () => {
     setError("");
     setSubmitting(true);
     try {
-      await api.put(`/jobs/${id}/`, formData);
+      const payload = { ...formData };
+      if (payload.expires_at) {
+        payload.expires_at = new Date(
+          payload.expires_at + "T23:59:59",
+        ).toISOString();
+      } else {
+        payload.expires_at = null;
+      }
+      await api.put(`/jobs/${id}/`, payload);
       navigate("/employer", {
         state: { message: "Job updated successfully!" },
       });
@@ -232,6 +242,22 @@ const EditJob = () => {
                   className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+            </div>
+
+            {/* Closing date */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Closing Date{" "}
+                <span className="text-gray-400 font-normal">(optional)</span>
+              </label>
+              <input
+                type="date"
+                name="expires_at"
+                value={formData.expires_at}
+                onChange={handleChange}
+                min={new Date().toISOString().split("T")[0]}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
 
             {/* Description */}

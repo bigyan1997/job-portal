@@ -857,7 +857,7 @@ const EmployerJobDetail = () => {
                       </span>
                       <span
                         style={{
-                          color: "#374151",
+                          color: item.color || "#374151",
                           fontSize: "12px",
                           fontWeight: 500,
                           textAlign: "right",
