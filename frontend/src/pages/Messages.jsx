@@ -4,15 +4,18 @@ import api from "../api/axios";
 
 const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8000";
 
-// Static styles — outside component so never re-created
 const STATIC_STYLES = `
   @media (max-width: 768px) {
     .messages-container { height: calc(100vh - 160px) !important; padding: 12px !important; }
-    .messages-desktop { display: none !important; }
+    .messages-sidebar { display: none !important; }
+    .messages-chat { display: none !important; }
+    .mobile-sidebar { display: flex !important; }
+    .mobile-chat { display: flex !important; }
     .mobile-back-btn { display: block !important; }
   }
   @media (min-width: 769px) {
-    .mobile-only { display: none !important; }
+    .mobile-sidebar { display: none !important; }
+    .mobile-chat { display: none !important; }
     .mobile-back-btn { display: none !important; }
   }
 `;
@@ -51,7 +54,6 @@ const Messages = () => {
 
   useEffect(() => {
     if (!activeConv) return;
-    // Don't reconnect if same conversation
     if (currentConvIdRef.current === activeConv.id) return;
     currentConvIdRef.current = activeConv.id;
 
@@ -60,13 +62,16 @@ const Messages = () => {
     if (ws.current) {
       ws.current.onmessage = null;
       ws.current.onerror = null;
+      ws.current.onclose = null;
       ws.current.close();
       ws.current = null;
     }
+
     const token = localStorage.getItem("access_token");
     const socket = new WebSocket(
       `${WS_URL}/ws/chat/${activeConv.id}/?token=${encodeURIComponent(token)}`,
     );
+
     socket.onopen = () =>
       console.log(`WS connected to conversation ${activeConv.id}`);
     socket.onmessage = (e) => {
@@ -87,10 +92,11 @@ const Messages = () => {
     socket.onclose = () =>
       console.log(`WS disconnected from conversation ${activeConv.id}`);
     ws.current = socket;
+
     return () => {
-      currentConvIdRef.current = null;
       socket.onmessage = null;
       socket.onerror = null;
+      socket.onclose = null;
       socket.close();
       ws.current = null;
     };
@@ -161,8 +167,7 @@ const Messages = () => {
     0,
   );
 
-  // Conversation list JSX
-  const conversationListJSX = (
+  const ConversationList = () => (
     <div
       style={{
         background: "#fff",
@@ -390,8 +395,7 @@ const Messages = () => {
     </div>
   );
 
-  // Chat window JSX
-  const chatWindowJSX = (
+  const ChatWindow = () => (
     <div
       style={{
         background: "#fff",
@@ -657,12 +661,24 @@ const Messages = () => {
           height: "calc(100vh - 180px)",
         }}
       >
-        {/* Mobile view — show list or chat */}
-        <div className="mobile-only" style={{ height: "100%" }}>
-          {!showChat ? conversationListJSX : chatWindowJSX}
-        </div>
+        {/* Mobile — show list OR chat, never both */}
+        {!showChat ? (
+          <div
+            className="mobile-sidebar"
+            style={{ height: "100%", display: "none", flexDirection: "column" }}
+          >
+            <ConversationList />
+          </div>
+        ) : (
+          <div
+            className="mobile-chat"
+            style={{ height: "100%", display: "none", flexDirection: "column" }}
+          >
+            <ChatWindow />
+          </div>
+        )}
 
-        {/* Desktop view — side by side */}
+        {/* Desktop — side by side */}
         <div
           className="messages-desktop"
           style={{
@@ -672,8 +688,8 @@ const Messages = () => {
             height: "100%",
           }}
         >
-          {conversationListJSX}
-          {chatWindowJSX}
+          <ConversationList />
+          <ChatWindow />
         </div>
       </div>
     </div>
