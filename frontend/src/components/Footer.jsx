@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Footer = () => {
+  const { user } = useAuth();
+
   return (
     <footer style={{ background: "#0F1923", padding: "60px 24px 32px" }}>
       <style>{`
@@ -168,29 +171,39 @@ const Footer = () => {
               style={{ display: "flex", flexDirection: "column", gap: "10px" }}
             >
               {[
-                { label: "Sign In", to: "/login" },
-                { label: "Create Account", to: "/register" },
-                { label: "Profile", to: "/profile" },
-              ].map((link) => (
-                <Link
-                  key={link.label}
-                  to={link.to}
-                  style={{
-                    color: "#475569",
-                    fontSize: "14px",
-                    textDecoration: "none",
-                    transition: "color 0.15s",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.color = "#94A3B8")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.color = "#475569")
-                  }
-                >
-                  {link.label}
-                </Link>
-              ))}
+                !user && { label: "Sign In", to: "/login" },
+                !user && { label: "Create Account", to: "/register" },
+                user && { label: "Profile", to: "/profile" },
+                user?.role === "jobseeker" && {
+                  label: "Dashboard",
+                  to: "/dashboard",
+                },
+                user?.role === "employer" && {
+                  label: "My Jobs",
+                  to: "/employer",
+                },
+              ]
+                .filter(Boolean)
+                .map((link) => (
+                  <Link
+                    key={link.label}
+                    to={link.to}
+                    style={{
+                      color: "#475569",
+                      fontSize: "14px",
+                      textDecoration: "none",
+                      transition: "color 0.15s",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.color = "#94A3B8")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.color = "#475569")
+                    }
+                  >
+                    {link.label}
+                  </Link>
+                ))}
             </div>
           </div>
         </div>
