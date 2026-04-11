@@ -71,7 +71,8 @@ class LoginView(APIView):
                 'tokens': {
                     'refresh': str(refresh),
                     'access': str(refresh.access_token),
-                }
+                },
+                'profile_completed': user.profile_completed,
             })
         return Response({'error': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -122,7 +123,8 @@ class GoogleLoginView(APIView):
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
             },
-            'created': created
+            'created': created,
+            'profile_completed': user.profile_completed,
         })
 
 class ForgotPasswordView(APIView):
@@ -197,6 +199,15 @@ class ProfileUpdateView(APIView):
         for field in allowed_fields:
             if field in request.data:
                 setattr(request.user, field, request.data[field])
+        
+        # Mark profile as completed if key fields are filled
+        if request.user.role == 'jobseeker':
+            if request.user.full_name and request.user.phone and request.user.bio:
+                request.user.profile_completed = True
+        elif request.user.role == 'employer':
+            if request.user.company_name and request.user.phone and request.user.bio:
+                request.user.profile_completed = True
+
         request.user.save()
         return Response(UserSerializer(request.user).data)
 

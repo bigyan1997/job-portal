@@ -18,5 +18,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'email', 'full_name', 'company_name', 'role', 'avatar',
             'resume', 'phone', 'bio', 'address', 'city',
-            'state', 'country', 'linkedin', 'portfolio', 'ai_analyses_used', 'is_pro', 'pro_since', 'date_joined'
+            'state', 'country', 'linkedin', 'portfolio', 'ai_analyses_used', 'is_pro', 'pro_since', 'date_joined',
+            'profile_completed'
         ]

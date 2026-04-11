@@ -1,9 +1,13 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 
 const Profile = () => {
   const { user, updateUser } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isNewUser = location.state?.newUser === true;
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
@@ -33,6 +37,18 @@ const Profile = () => {
     try {
       const res = await api.put("/auth/profile/", formData);
       updateUser(res.data);
+      if (isNewUser) {
+        if (res.data.role === "employer") {
+          navigate("/employer", {
+            state: { message: "Welcome! Your profile is set up." },
+          });
+        } else {
+          navigate("/dashboard", {
+            state: { message: "Welcome! Your profile is set up." },
+          });
+        }
+        return;
+      }
       setSuccess("Profile updated successfully!");
       setTimeout(() => setSuccess(""), 3000);
     } catch {
@@ -52,6 +68,44 @@ const Profile = () => {
     : user?.email[0].toUpperCase();
 
   const isEmployer = user?.role === "employer";
+
+  const getCompletionScore = () => {
+    const jobseekerFields = [
+      formData.full_name,
+      formData.phone,
+      formData.bio,
+      formData.city,
+      formData.linkedin,
+      formData.portfolio,
+    ];
+    const employerFields = [
+      formData.full_name,
+      formData.company_name,
+      formData.phone,
+      formData.bio,
+      formData.city,
+      formData.linkedin,
+    ];
+    const fields = isEmployer ? employerFields : jobseekerFields;
+    const filled = fields.filter((f) => f && f.trim() !== "").length;
+    return Math.round((filled / fields.length) * 100);
+  };
+
+  const completionScore = getCompletionScore();
+
+  const getMissingFields = () => {
+    const missing = [];
+    if (!formData.full_name)
+      missing.push(isEmployer ? "Contact name" : "Full name");
+    if (isEmployer && !formData.company_name) missing.push("Company name");
+    if (!formData.phone) missing.push("Phone number");
+    if (!formData.bio)
+      missing.push(isEmployer ? "Company description" : "About me");
+    if (!formData.city) missing.push("City");
+    if (!formData.linkedin) missing.push("LinkedIn");
+    if (!isEmployer && !formData.portfolio) missing.push("Portfolio");
+    return missing;
+  };
 
   const inputStyle = {
     width: "100%",
@@ -219,6 +273,111 @@ const Profile = () => {
             }}
           >
             {error}
+          </div>
+        )}
+
+        {/* Welcome banner for new users */}
+        {isNewUser && (
+          <div
+            style={{
+              background: "linear-gradient(135deg, #1E40AF, #2563EB)",
+              borderRadius: "16px",
+              padding: "24px 28px",
+              marginBottom: "24px",
+              color: "#fff",
+            }}
+          >
+            <div style={{ fontSize: "32px", marginBottom: "8px" }}>👋</div>
+            <h2
+              style={{ fontSize: "18px", fontWeight: 700, marginBottom: "6px" }}
+            >
+              Welcome to JobPortal AI!
+            </h2>
+            <p style={{ color: "#BFDBFE", fontSize: "14px", lineHeight: 1.6 }}>
+              Complete your profile to get the most out of the platform. It only
+              takes 2 minutes!
+            </p>
+          </div>
+        )}
+
+        {/* Completion progress bar */}
+        {!user?.profile_completed && (
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "16px",
+              border: "1px solid #F3F4F6",
+              padding: "20px 24px",
+              marginBottom: "20px",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "10px",
+              }}
+            >
+              <p
+                style={{ color: "#111827", fontSize: "14px", fontWeight: 700 }}
+              >
+                Profile completion
+              </p>
+              <span
+                style={{
+                  color:
+                    completionScore >= 80
+                      ? "#15803D"
+                      : completionScore >= 50
+                        ? "#A16207"
+                        : "#B91C1C",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                }}
+              >
+                {completionScore}%
+              </span>
+            </div>
+            <div
+              style={{
+                background: "#F3F4F6",
+                borderRadius: "999px",
+                height: "8px",
+                overflow: "hidden",
+                marginBottom: "12px",
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  borderRadius: "999px",
+                  width: `${completionScore}%`,
+                  background:
+                    completionScore >= 80
+                      ? "#22C55E"
+                      : completionScore >= 50
+                        ? "#EAB308"
+                        : "#EF4444",
+                  transition: "width 0.3s ease",
+                }}
+              />
+            </div>
+            {getMissingFields().length > 0 && (
+              <p style={{ color: "#6B7280", fontSize: "13px" }}>
+                Missing:{" "}
+                <span style={{ color: "#374151", fontWeight: 500 }}>
+                  {getMissingFields().join(", ")}
+                </span>
+              </p>
+            )}
+            {completionScore === 100 && (
+              <p
+                style={{ color: "#15803D", fontSize: "13px", fontWeight: 500 }}
+              >
+                ✅ Profile complete! Save to finish.
+              </p>
+            )}
           </div>
         )}
 

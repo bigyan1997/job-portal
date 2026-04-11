@@ -45,6 +45,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     stripe_subscription_id = models.CharField(max_length=255, blank=True)
 
     email_verified = models.BooleanField(default=False)
+    profile_completed = models.BooleanField(default=False)
     email_verification_token = models.UUIDField(default=uuid.uuid4, null=True, blank=True)
     
     is_active = models.BooleanField(default=True)

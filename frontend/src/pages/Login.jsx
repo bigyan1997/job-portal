@@ -22,7 +22,9 @@ const Login = () => {
     try {
       const res = await api.post("/auth/login/", formData);
       login(res.data.user, res.data.tokens);
-      if (res.data.user.role === "employer") {
+      if (!res.data.profile_completed) {
+        navigate("/profile", { state: { newUser: true } });
+      } else if (res.data.user.role === "employer") {
         navigate("/employer");
       } else {
         navigate("/dashboard");
@@ -46,7 +48,9 @@ const Login = () => {
           access_token: tokenResponse.access_token,
         });
         login(res.data.user, res.data.tokens);
-        if (res.data.user.role === "employer") {
+        if (!res.data.profile_completed) {
+          navigate("/profile", { state: { newUser: true } });
+        } else if (res.data.user.role === "employer") {
           navigate("/employer");
         } else {
           navigate("/dashboard");
