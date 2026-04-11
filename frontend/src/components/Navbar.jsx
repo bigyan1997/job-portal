@@ -200,9 +200,22 @@ const Navbar = () => {
                     : "2px solid transparent",
                 }}
               >
-                My Applications
+                Dashboard
               </Link>
               <MessagesLink />
+              <Link
+                to="/dashboard#saved"
+                style={{
+                  color: isActive("/dashboard") ? "#111827" : "#6B7280",
+                  fontSize: "14px",
+                  fontWeight: 400,
+                  textDecoration: "none",
+                  padding: "6px 2px",
+                  borderBottom: "2px solid transparent",
+                }}
+              >
+                🔖 Saved
+              </Link>
               <Link
                 to="/profile"
                 style={{
@@ -422,7 +435,11 @@ const Navbar = () => {
                       { to: "/profile", label: "👤 My Profile" },
                       user?.role === "jobseeker" && {
                         to: "/dashboard",
-                        label: "📋 My Applications",
+                        label: "📋 Dashboard",
+                      },
+                      user?.role === "jobseeker" && {
+                        to: "/dashboard",
+                        label: "🔖 Saved Jobs",
                       },
                       user?.role === "jobseeker" && {
                         to: "/messages",
@@ -656,7 +673,11 @@ const Navbar = () => {
               { to: "/", label: "🔍 Browse Jobs" },
               user?.role === "jobseeker" && {
                 to: "/dashboard",
-                label: "📋 My Applications",
+                label: "📋 Dashboard",
+              },
+              user?.role === "jobseeker" && {
+                to: "/dashboard",
+                label: "🔖 Saved Jobs",
               },
               user?.role === "jobseeker" && {
                 to: "/messages",
