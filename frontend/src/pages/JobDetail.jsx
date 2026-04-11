@@ -86,12 +86,13 @@ const JobDetail = () => {
     }
   };
 
-  const handleApply = async () => {
+  const handleApply = async (overrideCoverLetter) => {
     setApplying(true);
+    const letter = overrideCoverLetter !== undefined ? overrideCoverLetter : coverLetter;
     try {
       await api.post("/jobs/applications/", {
         job_id: id,
-        cover_letter: coverLetter,
+        cover_letter: letter,
         match_score: analysis?.match_score ?? null,
         matching_skills: analysis?.matching_skills?.join(", ") ?? "",
         missing_skills: analysis?.missing_skills?.join(", ") ?? "",
@@ -1131,8 +1132,8 @@ const JobDetail = () => {
                       <div
                         style={{
                           display: "flex",
-                          flexWrap: "wrap",
-                          gap: "6px",
+                          flexDirection: "column",
+                          gap: "4px",
                         }}
                       >
                         {analysis.missing_skills.map((skill, i) => (
@@ -1228,10 +1229,7 @@ const JobDetail = () => {
                         : "✅ Apply with cover letter"}
                     </button>
                     <button
-                      onClick={() => {
-                        setCoverLetter("");
-                        handleApply();
-                      }}
+                      onClick={() => handleApply("")}
                       disabled={applying}
                       style={{
                         flex: 1,
