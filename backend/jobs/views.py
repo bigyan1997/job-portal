@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Q
 from django.conf import settings
-from .models import Job, Application
+from .models import Job, Application, Bookmark
 from .serializers import JobSerializer, ApplicationSerializer
 from .ai_service import analyze_resume
 import threading
@@ -336,3 +336,36 @@ class SuggestResumeImprovementsView(APIView):
             return Response({'error': 'Failed to generate suggestions'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(result)
+
+class BookmarkView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        bookmarks = Bookmark.objects.filter(user=request.user).select_related('job')
+        jobs = [b.job for b in bookmarks]
+        return Response(JobSerializer(jobs, many=True).data)
+
+    def post(self, request):
+        job_id = request.data.get('job_id')
+        if not job_id:
+            return Response({'error': 'job_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            job = Job.objects.get(pk=job_id)
+        except Job.DoesNotExist:
+            return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        bookmark, created = Bookmark.objects.get_or_create(user=request.user, job=job)
+        if not created:
+            return Response({'error': 'Already bookmarked'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Job bookmarked'}, status=status.HTTP_201_CREATED)
+
+    def delete(self, request):
+        job_id = request.data.get('job_id')
+        if not job_id:
+            return Response({'error': 'job_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            bookmark = Bookmark.objects.get(user=request.user, job_id=job_id)
+            bookmark.delete()
+            return Response({'message': 'Bookmark removed'})
+        except Bookmark.DoesNotExist:
+            return Response({'error': 'Bookmark not found'}, status=status.HTTP_404_NOT_FOUND)

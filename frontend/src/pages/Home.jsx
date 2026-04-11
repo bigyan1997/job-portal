@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import JobCard from "../components/JobCard";
 import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 
 const JOB_TYPES = [
   { value: "", label: "All Types" },
@@ -13,11 +14,23 @@ const JOB_TYPES = [
 ];
 
 const Home = () => {
+  const { user } = useAuth();
+  const [bookmarkedIds, setBookmarkedIds] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [jobType, setJobType] = useState("");
   const [activeType, setActiveType] = useState("");
+
+  useEffect(() => {
+    const fetchBookmarks = async () => {
+      try {
+        const res = await api.get("/jobs/bookmarks/");
+        setBookmarkedIds(res.data.map((j) => j.id));
+      } catch {}
+    };
+    if (user) fetchBookmarks();
+  }, [user]);
 
   const fetchJobs = async (showLoader = true) => {
     if (showLoader) setLoading(true);
@@ -644,7 +657,18 @@ const Home = () => {
             }}
           >
             {jobs.map((job) => (
-              <JobCard key={job.id} job={job} />
+              <JobCard
+                key={job.id}
+                job={job}
+                bookmarkedIds={bookmarkedIds}
+                onBookmarkChange={() => {
+                  const fetchBookmarks = async () => {
+                    const res = await api.get("/jobs/bookmarks/");
+                    setBookmarkedIds(res.data.map((j) => j.id));
+                  };
+                  fetchBookmarks();
+                }}
+              />
             ))}
           </div>
         )}

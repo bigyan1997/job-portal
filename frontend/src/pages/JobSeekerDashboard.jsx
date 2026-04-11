@@ -22,11 +22,25 @@ const JobSeekerDashboard = () => {
   const [resumeUploading, setResumeUploading] = useState(false);
   const [resumeSuccess, setResumeSuccess] = useState("");
   const [currentResume, setCurrentResume] = useState(user?.resume || null);
+  const [savedJobs, setSavedJobs] = useState([]);
+  const [savedLoading, setSavedLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.resume) {
-      setCurrentResume(user.resume);
-    }
+    const fetchSavedJobs = async () => {
+      try {
+        const res = await api.get("/jobs/bookmarks/");
+        setSavedJobs(res.data);
+      } catch (err) {
+        console.error("Failed to fetch saved jobs", err);
+      } finally {
+        setSavedLoading(false);
+      }
+    };
+    fetchSavedJobs();
+  }, []);
+
+  useEffect(() => {
+    if (user?.resume) setCurrentResume(user.resume);
   }, [user?.resume]);
 
   const getResumeUrl = (resume) => {
@@ -48,7 +62,6 @@ const JobSeekerDashboard = () => {
       }
     };
     fetchApplications();
-
     if (successMessage) {
       const timer = setTimeout(() => setSuccessMessage(""), 4000);
       return () => clearTimeout(timer);
@@ -58,8 +71,6 @@ const JobSeekerDashboard = () => {
   const handleResumeUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    // Check both extension and MIME type for mobile compatibility
     const isPDF =
       file.name.toLowerCase().endsWith(".pdf") ||
       file.type === "application/pdf";
@@ -67,7 +78,6 @@ const JobSeekerDashboard = () => {
       alert("Only PDF files are allowed");
       return;
     }
-
     setResumeUploading(true);
     try {
       const formData = new FormData();
@@ -80,8 +90,7 @@ const JobSeekerDashboard = () => {
       setResumeSuccess("Resume uploaded successfully!");
       setTimeout(() => setResumeSuccess(""), 3000);
     } catch (err) {
-      const errorMsg = err.response?.data?.error || "Failed to upload resume";
-      alert(errorMsg);
+      alert(err.response?.data?.error || "Failed to upload resume");
     } finally {
       setResumeUploading(false);
     }
@@ -157,11 +166,13 @@ const JobSeekerDashboard = () => {
       <style>{`
         @media (max-width: 768px) {
           .skills-grid { grid-template-columns: 1fr !important; }
+          .dashboard-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
+
       {/* Header */}
       <div style={{ background: "#0F1923", padding: "40px 24px" }}>
-        <div style={{ maxWidth: "760px", margin: "0 auto" }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <div
             style={{
               display: "flex",
@@ -258,7 +269,7 @@ const JobSeekerDashboard = () => {
       </div>
 
       <div
-        style={{ maxWidth: "760px", margin: "0 auto", padding: "32px 24px" }}
+        style={{ maxWidth: "1100px", margin: "0 auto", padding: "32px 24px" }}
       >
         {/* Success message */}
         {successMessage && (
@@ -280,757 +291,931 @@ const JobSeekerDashboard = () => {
           </div>
         )}
 
-        {/* Resume card */}
+        {/* Two column grid */}
         <div
+          className="dashboard-grid"
           style={{
-            background: "#fff",
-            borderRadius: "16px",
-            border: "1px solid #F3F4F6",
-            padding: "24px",
-            marginBottom: "24px",
+            display: "grid",
+            gridTemplateColumns: "1fr 320px",
+            gap: "24px",
+            alignItems: "start",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              marginBottom: "16px",
-            }}
-          >
-            <p
-              style={{
-                color: "#111827",
-                fontSize: "14px",
-                fontWeight: 700,
-                whiteSpace: "nowrap",
-              }}
-            >
-              My Resume
-            </p>
-            <div style={{ flex: 1, height: "1px", background: "#E5E7EB" }} />
-          </div>
-
-          {resumeSuccess && (
+          {/* LEFT COLUMN — Resume + Applications */}
+          <div>
+            {/* Resume card */}
             <div
               style={{
-                background: "#F0FDF4",
-                border: "1px solid #BBF7D0",
-                color: "#15803D",
-                padding: "10px 14px",
-                borderRadius: "8px",
-                marginBottom: "12px",
-                fontSize: "13px",
-              }}
-            >
-              ✅ {resumeSuccess}
-            </div>
-          )}
-
-          {currentResume ? (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                background: "#F9FAFB",
+                background: "#fff",
+                borderRadius: "16px",
                 border: "1px solid #F3F4F6",
-                borderRadius: "12px",
-                padding: "14px 18px",
+                padding: "24px",
+                marginBottom: "24px",
               }}
             >
               <div
-                style={{ display: "flex", alignItems: "center", gap: "12px" }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  marginBottom: "16px",
+                }}
               >
+                <p
+                  style={{
+                    color: "#111827",
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  My Resume
+                </p>
+                <div
+                  style={{ flex: 1, height: "1px", background: "#E5E7EB" }}
+                />
+              </div>
+
+              {resumeSuccess && (
                 <div
                   style={{
-                    width: "40px",
-                    height: "40px",
-                    borderRadius: "10px",
-                    background: "linear-gradient(135deg, #1E40AF, #3B82F6)",
+                    background: "#F0FDF4",
+                    border: "1px solid #BBF7D0",
+                    color: "#15803D",
+                    padding: "10px 14px",
+                    borderRadius: "8px",
+                    marginBottom: "12px",
+                    fontSize: "13px",
+                  }}
+                >
+                  ✅ {resumeSuccess}
+                </div>
+              )}
+
+              {currentResume ? (
+                <div
+                  style={{
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    color: "#fff",
-                    fontSize: "18px",
+                    justifyContent: "space-between",
+                    background: "#F9FAFB",
+                    border: "1px solid #F3F4F6",
+                    borderRadius: "12px",
+                    padding: "14px 18px",
                   }}
                 >
-                  📄
-                </div>
-                <div>
-                  <p
-                    style={{
-                      color: "#111827",
-                      fontWeight: 600,
-                      fontSize: "14px",
-                      marginBottom: "2px",
-                    }}
-                  >
-                    Resume uploaded
-                  </p>
-
-                  <a
-                    href={getResumeUrl(currentResume)}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{
-                      color: "#2563EB",
-                      fontSize: "12px",
-                      textDecoration: "none",
-                    }}
-                  >
-                    View current resume →
-                  </a>
-                </div>
-              </div>
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "12px" }}
-              >
-                <button
-                  onClick={() =>
-                    document.getElementById("resume-replace-input").click()
-                  }
-                  style={{
-                    color: "#2563EB",
-                    fontSize: "13px",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                  }}
-                >
-                  Replace
-                </button>
-                <input
-                  id="resume-replace-input"
-                  type="file"
-                  accept=".pdf,application/pdf"
-                  onChange={handleResumeUpload}
-                  style={{ display: "none" }}
-                />
-                <button
-                  onClick={handleResumeDelete}
-                  style={{
-                    color: "#EF4444",
-                    fontSize: "13px",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div>
-              <input
-                id="resume-upload-input"
-                type="file"
-                accept=".pdf,application/pdf"
-                onChange={handleResumeUpload}
-                style={{ display: "none" }}
-              />
-              <button
-                onClick={() =>
-                  document.getElementById("resume-upload-input").click()
-                }
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: `2px dashed ${resumeUploading ? "#3B82F6" : "#E5E7EB"}`,
-                  borderRadius: "12px",
-                  padding: "40px 24px",
-                  cursor: "pointer",
-                  background: resumeUploading ? "#EFF6FF" : "transparent",
-                  transition: "all 0.15s ease",
-                }}
-              >
-                {resumeUploading ? (
-                  <>
-                    <svg
-                      className="animate-spin h-8 w-8"
-                      style={{ color: "#3B82F6", marginBottom: "12px" }}
-                      viewBox="0 0 24 24"
-                      fill="none"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v8z"
-                      />
-                    </svg>
-                    <p
-                      style={{
-                        color: "#3B82F6",
-                        fontSize: "14px",
-                        fontWeight: 500,
-                      }}
-                    >
-                      Uploading...
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <div
-                      style={{
-                        width: "48px",
-                        height: "48px",
-                        borderRadius: "12px",
-                        background: "#F3F4F6",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "22px",
-                        marginBottom: "12px",
-                      }}
-                    >
-                      📄
-                    </div>
-                    <p
-                      style={{
-                        color: "#111827",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        marginBottom: "4px",
-                      }}
-                    >
-                      Upload your resume
-                    </p>
-                    <p style={{ color: "#9CA3AF", fontSize: "12px" }}>
-                      PDF only · Click to browse
-                    </p>
-                  </>
-                )}
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Applications section */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            marginBottom: "16px",
-          }}
-        >
-          <p
-            style={{
-              color: "#111827",
-              fontSize: "14px",
-              fontWeight: 700,
-              whiteSpace: "nowrap",
-            }}
-          >
-            My Applications
-          </p>
-          <div style={{ flex: 1, height: "1px", background: "#E5E7EB" }} />
-          <span
-            style={{ color: "#9CA3AF", fontSize: "12px", whiteSpace: "nowrap" }}
-          >
-            {applications.length} total
-          </span>
-        </div>
-
-        {/* Empty state */}
-        {applications.length === 0 && (
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: "16px",
-              border: "1px solid #F3F4F6",
-              padding: "64px 24px",
-              textAlign: "center",
-            }}
-          >
-            <div style={{ fontSize: "48px", marginBottom: "16px" }}>📋</div>
-            <h3
-              style={{ color: "#111827", fontWeight: 600, marginBottom: "8px" }}
-            >
-              No applications yet
-            </h3>
-            <p
-              style={{
-                color: "#9CA3AF",
-                fontSize: "14px",
-                marginBottom: "20px",
-              }}
-            >
-              Start applying to jobs to track your applications here
-            </p>
-            <Link
-              to="/"
-              style={{
-                color: "#2563EB",
-                fontSize: "14px",
-                fontWeight: 500,
-                textDecoration: "none",
-              }}
-            >
-              Browse open jobs →
-            </Link>
-          </div>
-        )}
-
-        {/* Applications list */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {applications.map((app) => {
-            const statusStyle = STATUS_STYLES[app.status];
-            const isExpanded = expandedId === app.id;
-
-            return (
-              <div
-                key={app.id}
-                style={{
-                  background: "#fff",
-                  borderRadius: "16px",
-                  border: "1px solid #F3F4F6",
-                  overflow: "hidden",
-                }}
-              >
-                <div style={{ padding: "20px" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      justifyContent: "space-between",
-                      gap: "16px",
-                    }}
-                  >
-                    {/* Job info */}
-                    <div style={{ flex: 1 }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                          flexWrap: "wrap",
-                          marginBottom: "6px",
-                        }}
-                      >
-                        <h3
-                          style={{
-                            color: "#111827",
-                            fontWeight: 700,
-                            fontSize: "15px",
-                          }}
-                        >
-                          {app.job.title}
-                        </h3>
-                        <span
-                          style={{
-                            background: statusStyle.bg,
-                            color: statusStyle.text,
-                            fontSize: "11px",
-                            fontWeight: 600,
-                            padding: "3px 10px",
-                            borderRadius: "999px",
-                            letterSpacing: "0.03em",
-                          }}
-                        >
-                          {statusStyle.label}
-                        </span>
-                      </div>
-                      <p
-                        style={{
-                          color: "#6B7280",
-                          fontSize: "13px",
-                          marginBottom: "4px",
-                        }}
-                      >
-                        🏢 {app.job.company} · 📍 {app.job.location}
-                      </p>
-                      <p style={{ color: "#9CA3AF", fontSize: "12px" }}>
-                        Applied{" "}
-                        {new Date(app.applied_at).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </p>
-                    </div>
-
-                    {/* Match score */}
-                    {app.match_score !== null ? (
-                      <div
-                        style={{
-                          width: "60px",
-                          height: "60px",
-                          borderRadius: "50%",
-                          flexShrink: 0,
-                          border: `4px solid ${app.match_score >= 70 ? "#22C55E" : app.match_score >= 40 ? "#EAB308" : "#EF4444"}`,
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color:
-                            app.match_score >= 70
-                              ? "#15803D"
-                              : app.match_score >= 40
-                                ? "#A16207"
-                                : "#B91C1C",
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: "15px",
-                            fontWeight: 700,
-                            lineHeight: 1,
-                          }}
-                        >
-                          {app.match_score}%
-                        </span>
-                        <span
-                          style={{
-                            fontSize: "9px",
-                            lineHeight: 1,
-                            marginTop: "2px",
-                            color: "#9CA3AF",
-                          }}
-                        >
-                          match
-                        </span>
-                      </div>
-                    ) : (
-                      <div
-                        style={{
-                          width: "60px",
-                          height: "60px",
-                          borderRadius: "50%",
-                          flexShrink: 0,
-                          border: "4px solid #E5E7EB",
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "#D1D5DB",
-                          fontSize: "10px",
-                          textAlign: "center",
-                          lineHeight: 1.3,
-                        }}
-                      >
-                        AI
-                        <br />
-                        pending
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Match bar */}
-                  {app.match_score !== null && (
-                    <div style={{ marginTop: "14px" }}>
-                      <div
-                        style={{
-                          background: "#F3F4F6",
-                          borderRadius: "999px",
-                          height: "5px",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div
-                          style={{
-                            height: "100%",
-                            borderRadius: "999px",
-                            width: `${app.match_score}%`,
-                            background:
-                              app.match_score >= 70
-                                ? "#22C55E"
-                                : app.match_score >= 40
-                                  ? "#EAB308"
-                                  : "#EF4444",
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Actions */}
                   <div
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: "16px",
-                      marginTop: "14px",
-                      paddingTop: "14px",
-                      borderTop: "1px solid #F9FAFB",
+                      gap: "12px",
                     }}
                   >
-                    {(app.cover_letter || app.match_score !== null) && (
-                      <button
-                        onClick={() => toggleExpand(app.id)}
-                        style={{
-                          color: "#2563EB",
-                          fontSize: "13px",
-                          fontWeight: 500,
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          padding: 0,
-                        }}
-                      >
-                        {isExpanded
-                          ? "▲ Hide details"
-                          : "▼ View AI insights & cover letter"}
-                      </button>
-                    )}
-                    <Link
-                      to={`/jobs/${app.job.id}`}
+                    <div
                       style={{
-                        color: "#6B7280",
-                        fontSize: "13px",
-                        textDecoration: "none",
-                        marginLeft: "auto",
+                        width: "40px",
+                        height: "40px",
+                        borderRadius: "10px",
+                        background: "linear-gradient(135deg, #1E40AF, #3B82F6)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#fff",
+                        fontSize: "18px",
                       }}
                     >
-                      View job →
-                    </Link>
+                      📄
+                    </div>
+                    <div>
+                      <p
+                        style={{
+                          color: "#111827",
+                          fontWeight: 600,
+                          fontSize: "14px",
+                          marginBottom: "2px",
+                        }}
+                      >
+                        Resume uploaded
+                      </p>
+                      <a
+                        href={getResumeUrl(currentResume)}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          color: "#2563EB",
+                          fontSize: "12px",
+                          textDecoration: "none",
+                        }}
+                      >
+                        View current resume →
+                      </a>
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                    }}
+                  >
                     <button
-                      onClick={async () => {
-                        if (
-                          !window.confirm(
-                            "Are you sure you want to withdraw this application?",
-                          )
-                        )
-                          return;
-                        try {
-                          await api.delete(`/jobs/applications/${app.id}/`);
-                          setApplications(
-                            applications.filter((a) => a.id !== app.id),
-                          );
-                        } catch {
-                          alert("Failed to withdraw application");
-                        }
-                      }}
+                      onClick={() =>
+                        document.getElementById("resume-replace-input").click()
+                      }
                       style={{
-                        color: "#EF4444",
+                        color: "#2563EB",
                         fontSize: "13px",
                         fontWeight: 500,
+                        cursor: "pointer",
                         background: "none",
                         border: "none",
-                        cursor: "pointer",
                         padding: 0,
                       }}
                     >
-                      Withdraw
+                      Replace
                     </button>
-                  </div>
-
-                  {/* AI pending */}
-                  {!app.cover_letter && app.match_score === null && (
-                    <div
+                    <input
+                      id="resume-replace-input"
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      onChange={handleResumeUpload}
+                      style={{ display: "none" }}
+                    />
+                    <button
+                      onClick={handleResumeDelete}
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        marginTop: "10px",
-                        color: "#9CA3AF",
-                        fontSize: "12px",
+                        color: "#EF4444",
+                        fontSize: "13px",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
                       }}
                     >
-                      <svg
-                        className="animate-spin h-3 w-3"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8v8z"
-                        />
-                      </svg>
-                      AI is analyzing your resume...
-                    </div>
-                  )}
+                      Delete
+                    </button>
+                  </div>
                 </div>
-
-                {/* Expanded details */}
-                {isExpanded && (
-                  <div
+              ) : (
+                <div>
+                  <input
+                    id="resume-upload-input"
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    onChange={handleResumeUpload}
+                    style={{ display: "none" }}
+                  />
+                  <button
+                    onClick={() =>
+                      document.getElementById("resume-upload-input").click()
+                    }
                     style={{
-                      borderTop: "1px solid #F3F4F6",
-                      padding: "20px",
-                      background: "#FAFAFA",
+                      width: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: `2px dashed ${resumeUploading ? "#3B82F6" : "#E5E7EB"}`,
+                      borderRadius: "12px",
+                      padding: "40px 24px",
+                      cursor: "pointer",
+                      background: resumeUploading ? "#EFF6FF" : "transparent",
+                      transition: "all 0.15s ease",
                     }}
                   >
-                    {/* Skills grid */}
-                    {(app.matching_skills || app.missing_skills) && (
+                    {resumeUploading ? (
+                      <>
+                        <svg
+                          className="animate-spin h-8 w-8"
+                          style={{ color: "#3B82F6", marginBottom: "12px" }}
+                          viewBox="0 0 24 24"
+                          fill="none"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v8z"
+                          />
+                        </svg>
+                        <p
+                          style={{
+                            color: "#3B82F6",
+                            fontSize: "14px",
+                            fontWeight: 500,
+                          }}
+                        >
+                          Uploading...
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <div
+                          style={{
+                            width: "48px",
+                            height: "48px",
+                            borderRadius: "12px",
+                            background: "#F3F4F6",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "22px",
+                            marginBottom: "12px",
+                          }}
+                        >
+                          📄
+                        </div>
+                        <p
+                          style={{
+                            color: "#111827",
+                            fontSize: "14px",
+                            fontWeight: 600,
+                            marginBottom: "4px",
+                          }}
+                        >
+                          Upload your resume
+                        </p>
+                        <p style={{ color: "#9CA3AF", fontSize: "12px" }}>
+                          PDF only · Click to browse
+                        </p>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Applications section */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                marginBottom: "16px",
+              }}
+            >
+              <p
+                style={{
+                  color: "#111827",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                My Applications
+              </p>
+              <div style={{ flex: 1, height: "1px", background: "#E5E7EB" }} />
+              <span
+                style={{
+                  color: "#9CA3AF",
+                  fontSize: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {applications.length} total
+              </span>
+            </div>
+
+            {/* Empty state */}
+            {applications.length === 0 && (
+              <div
+                style={{
+                  background: "#fff",
+                  borderRadius: "16px",
+                  border: "1px solid #F3F4F6",
+                  padding: "64px 24px",
+                  textAlign: "center",
+                }}
+              >
+                <div style={{ fontSize: "48px", marginBottom: "16px" }}>📋</div>
+                <h3
+                  style={{
+                    color: "#111827",
+                    fontWeight: 600,
+                    marginBottom: "8px",
+                  }}
+                >
+                  No applications yet
+                </h3>
+                <p
+                  style={{
+                    color: "#9CA3AF",
+                    fontSize: "14px",
+                    marginBottom: "20px",
+                  }}
+                >
+                  Start applying to jobs to track your applications here
+                </p>
+                <Link
+                  to="/"
+                  style={{
+                    color: "#2563EB",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    textDecoration: "none",
+                  }}
+                >
+                  Browse open jobs →
+                </Link>
+              </div>
+            )}
+
+            {/* Applications list */}
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+            >
+              {applications.map((app) => {
+                const statusStyle = STATUS_STYLES[app.status];
+                const isExpanded = expandedId === app.id;
+                return (
+                  <div
+                    key={app.id}
+                    style={{
+                      background: "#fff",
+                      borderRadius: "16px",
+                      border: "1px solid #F3F4F6",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div style={{ padding: "20px" }}>
                       <div
-                        className="skills-grid"
                         style={{
-                          display: "grid",
-                          gridTemplateColumns: "1fr 1fr",
-                          gap: "12px",
-                          marginBottom: "20px",
+                          display: "flex",
+                          alignItems: "flex-start",
+                          justifyContent: "space-between",
+                          gap: "16px",
                         }}
                       >
-                        {app.matching_skills && (
-                          <div>
-                            <p
+                        <div style={{ flex: 1 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              flexWrap: "wrap",
+                              marginBottom: "6px",
+                            }}
+                          >
+                            <h3
                               style={{
-                                color: "#6B7280",
+                                color: "#111827",
+                                fontWeight: 700,
+                                fontSize: "15px",
+                              }}
+                            >
+                              {app.job.title}
+                            </h3>
+                            <span
+                              style={{
+                                background: statusStyle.bg,
+                                color: statusStyle.text,
                                 fontSize: "11px",
                                 fontWeight: 600,
-                                marginBottom: "8px",
-                                letterSpacing: "0.05em",
+                                padding: "3px 10px",
+                                borderRadius: "999px",
+                                letterSpacing: "0.03em",
                               }}
                             >
-                              ✅ SKILLS YOU HAVE
-                            </p>
-                            <div
-                              style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: "4px",
-                              }}
-                            >
-                              {app.matching_skills
-                                .split(", ")
-                                .map((skill, i) => (
-                                  <span
-                                    key={i}
-                                    style={{
-                                      background: "#DCFCE7",
-                                      color: "#15803D",
-                                      fontSize: "11px",
-                                      padding: "4px 10px",
-                                      borderRadius: "8px",
-                                      display: "block",
-                                      wordBreak: "break-word",
-                                      lineHeight: 1.4,
-                                    }}
-                                  >
-                                    {skill}
-                                  </span>
-                                ))}
-                            </div>
+                              {statusStyle.label}
+                            </span>
                           </div>
-                        )}
-                        {app.missing_skills && (
-                          <div>
-                            <p
+                          <p
+                            style={{
+                              color: "#6B7280",
+                              fontSize: "13px",
+                              marginBottom: "4px",
+                            }}
+                          >
+                            🏢 {app.job.company} · 📍 {app.job.location}
+                          </p>
+                          <p style={{ color: "#9CA3AF", fontSize: "12px" }}>
+                            Applied{" "}
+                            {new Date(app.applied_at).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              },
+                            )}
+                          </p>
+                        </div>
+
+                        {app.match_score !== null ? (
+                          <div
+                            style={{
+                              width: "60px",
+                              height: "60px",
+                              borderRadius: "50%",
+                              flexShrink: 0,
+                              border: `4px solid ${app.match_score >= 70 ? "#22C55E" : app.match_score >= 40 ? "#EAB308" : "#EF4444"}`,
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color:
+                                app.match_score >= 70
+                                  ? "#15803D"
+                                  : app.match_score >= 40
+                                    ? "#A16207"
+                                    : "#B91C1C",
+                            }}
+                          >
+                            <span
                               style={{
-                                color: "#6B7280",
-                                fontSize: "11px",
-                                fontWeight: 600,
-                                marginBottom: "8px",
-                                letterSpacing: "0.05em",
+                                fontSize: "15px",
+                                fontWeight: 700,
+                                lineHeight: 1,
                               }}
                             >
-                              ❌ SKILLS TO DEVELOP
-                            </p>
-                            <div
+                              {app.match_score}%
+                            </span>
+                            <span
                               style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: "4px",
+                                fontSize: "9px",
+                                lineHeight: 1,
+                                marginTop: "2px",
+                                color: "#9CA3AF",
                               }}
                             >
-                              {app.missing_skills
-                                .split(", ")
-                                .map((skill, i) => (
-                                  <span
-                                    key={i}
-                                    style={{
-                                      background: "#FEE2E2",
-                                      color: "#B91C1C",
-                                      fontSize: "11px",
-                                      padding: "4px 10px",
-                                      borderRadius: "8px",
-                                      display: "block",
-                                      wordBreak: "break-word",
-                                      lineHeight: 1.4,
-                                    }}
-                                  >
-                                    {skill}
-                                  </span>
-                                ))}
-                            </div>
+                              match
+                            </span>
+                          </div>
+                        ) : (
+                          <div
+                            style={{
+                              width: "60px",
+                              height: "60px",
+                              borderRadius: "50%",
+                              flexShrink: 0,
+                              border: "4px solid #E5E7EB",
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "#D1D5DB",
+                              fontSize: "10px",
+                              textAlign: "center",
+                              lineHeight: 1.3,
+                            }}
+                          >
+                            AI
+                            <br />
+                            pending
                           </div>
                         )}
                       </div>
-                    )}
 
-                    {/* Cover letter */}
-                    {app.cover_letter && (
-                      <div>
+                      {app.match_score !== null && (
+                        <div style={{ marginTop: "14px" }}>
+                          <div
+                            style={{
+                              background: "#F3F4F6",
+                              borderRadius: "999px",
+                              height: "5px",
+                              overflow: "hidden",
+                            }}
+                          >
+                            <div
+                              style={{
+                                height: "100%",
+                                borderRadius: "999px",
+                                width: `${app.match_score}%`,
+                                background:
+                                  app.match_score >= 70
+                                    ? "#22C55E"
+                                    : app.match_score >= 40
+                                      ? "#EAB308"
+                                      : "#EF4444",
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "16px",
+                          marginTop: "14px",
+                          paddingTop: "14px",
+                          borderTop: "1px solid #F9FAFB",
+                        }}
+                      >
+                        {(app.cover_letter || app.match_score !== null) && (
+                          <button
+                            onClick={() => toggleExpand(app.id)}
+                            style={{
+                              color: "#2563EB",
+                              fontSize: "13px",
+                              fontWeight: 500,
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              padding: 0,
+                            }}
+                          >
+                            {isExpanded
+                              ? "▲ Hide details"
+                              : "▼ View AI insights & cover letter"}
+                          </button>
+                        )}
+                        <Link
+                          to={`/jobs/${app.job.id}`}
+                          style={{
+                            color: "#6B7280",
+                            fontSize: "13px",
+                            textDecoration: "none",
+                            marginLeft: "auto",
+                          }}
+                        >
+                          View job →
+                        </Link>
+                        <button
+                          onClick={async () => {
+                            if (
+                              !window.confirm(
+                                "Are you sure you want to withdraw this application?",
+                              )
+                            )
+                              return;
+                            try {
+                              await api.delete(`/jobs/applications/${app.id}/`);
+                              setApplications(
+                                applications.filter((a) => a.id !== app.id),
+                              );
+                            } catch {
+                              alert("Failed to withdraw application");
+                            }
+                          }}
+                          style={{
+                            color: "#EF4444",
+                            fontSize: "13px",
+                            fontWeight: 500,
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            padding: 0,
+                          }}
+                        >
+                          Withdraw
+                        </button>
+                      </div>
+
+                      {!app.cover_letter && app.match_score === null && (
                         <div
                           style={{
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "space-between",
-                            marginBottom: "10px",
+                            gap: "6px",
+                            marginTop: "10px",
+                            color: "#9CA3AF",
+                            fontSize: "12px",
                           }}
                         >
-                          <p
+                          <svg
+                            className="animate-spin h-3 w-3"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8v8z"
+                            />
+                          </svg>
+                          AI is analyzing your resume...
+                        </div>
+                      )}
+                    </div>
+
+                    {isExpanded && (
+                      <div
+                        style={{
+                          borderTop: "1px solid #F3F4F6",
+                          padding: "20px",
+                          background: "#FAFAFA",
+                        }}
+                      >
+                        {(app.matching_skills || app.missing_skills) && (
+                          <div
+                            className="skills-grid"
                             style={{
-                              color: "#6B7280",
-                              fontSize: "11px",
-                              fontWeight: 600,
-                              letterSpacing: "0.05em",
+                              display: "grid",
+                              gridTemplateColumns: "1fr 1fr",
+                              gap: "12px",
+                              marginBottom: "20px",
                             }}
                           >
-                            🤖 AI GENERATED COVER LETTER
-                          </p>
-                          <button
-                            onClick={() =>
-                              navigator.clipboard.writeText(app.cover_letter)
-                            }
-                            style={{
-                              color: "#2563EB",
-                              fontSize: "12px",
-                              background: "none",
-                              border: "none",
-                              cursor: "pointer",
-                            }}
-                          >
-                            Copy
-                          </button>
-                        </div>
-                        <div
-                          style={{
-                            background: "#fff",
-                            border: "1px solid #F3F4F6",
-                            borderRadius: "12px",
-                            padding: "16px",
-                            fontSize: "13px",
-                            color: "#6B7280",
-                            lineHeight: 1.8,
-                            whiteSpace: "pre-line",
-                            maxHeight: "240px",
-                            overflowY: "auto",
-                          }}
-                        >
-                          {app.cover_letter}
-                        </div>
+                            {app.matching_skills && (
+                              <div>
+                                <p
+                                  style={{
+                                    color: "#6B7280",
+                                    fontSize: "11px",
+                                    fontWeight: 600,
+                                    marginBottom: "8px",
+                                    letterSpacing: "0.05em",
+                                  }}
+                                >
+                                  ✅ SKILLS YOU HAVE
+                                </p>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "4px",
+                                  }}
+                                >
+                                  {app.matching_skills
+                                    .split(", ")
+                                    .map((skill, i) => (
+                                      <span
+                                        key={i}
+                                        style={{
+                                          background: "#DCFCE7",
+                                          color: "#15803D",
+                                          fontSize: "11px",
+                                          padding: "4px 10px",
+                                          borderRadius: "8px",
+                                          display: "block",
+                                          wordBreak: "break-word",
+                                          lineHeight: 1.4,
+                                        }}
+                                      >
+                                        {skill}
+                                      </span>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
+                            {app.missing_skills && (
+                              <div>
+                                <p
+                                  style={{
+                                    color: "#6B7280",
+                                    fontSize: "11px",
+                                    fontWeight: 600,
+                                    marginBottom: "8px",
+                                    letterSpacing: "0.05em",
+                                  }}
+                                >
+                                  ❌ SKILLS TO DEVELOP
+                                </p>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "4px",
+                                  }}
+                                >
+                                  {app.missing_skills
+                                    .split(", ")
+                                    .map((skill, i) => (
+                                      <span
+                                        key={i}
+                                        style={{
+                                          background: "#FEE2E2",
+                                          color: "#B91C1C",
+                                          fontSize: "11px",
+                                          padding: "4px 10px",
+                                          borderRadius: "8px",
+                                          display: "block",
+                                          wordBreak: "break-word",
+                                          lineHeight: 1.4,
+                                        }}
+                                      >
+                                        {skill}
+                                      </span>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {app.cover_letter && (
+                          <div>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                marginBottom: "10px",
+                              }}
+                            >
+                              <p
+                                style={{
+                                  color: "#6B7280",
+                                  fontSize: "11px",
+                                  fontWeight: 600,
+                                  letterSpacing: "0.05em",
+                                }}
+                              >
+                                🤖 AI GENERATED COVER LETTER
+                              </p>
+                              <button
+                                onClick={() =>
+                                  navigator.clipboard.writeText(
+                                    app.cover_letter,
+                                  )
+                                }
+                                style={{
+                                  color: "#2563EB",
+                                  fontSize: "12px",
+                                  background: "none",
+                                  border: "none",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                Copy
+                              </button>
+                            </div>
+                            <div
+                              style={{
+                                background: "#fff",
+                                border: "1px solid #F3F4F6",
+                                borderRadius: "12px",
+                                padding: "16px",
+                                fontSize: "13px",
+                                color: "#6B7280",
+                                lineHeight: 1.8,
+                                whiteSpace: "pre-line",
+                                maxHeight: "240px",
+                                overflowY: "auto",
+                              }}
+                            >
+                              {app.cover_letter}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
+                );
+              })}
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN — Saved Jobs */}
+          <div style={{ position: "sticky", top: "80px" }}>
+            <div
+              style={{
+                background: "#fff",
+                borderRadius: "16px",
+                border: "1px solid #F3F4F6",
+                padding: "24px",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  marginBottom: "16px",
+                }}
+              >
+                <p
+                  style={{
+                    color: "#111827",
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  🔖 Saved Jobs
+                </p>
+                <div
+                  style={{ flex: 1, height: "1px", background: "#E5E7EB" }}
+                />
+                <span
+                  style={{
+                    color: "#9CA3AF",
+                    fontSize: "12px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {savedJobs.length} saved
+                </span>
               </div>
-            );
-          })}
+
+              {savedLoading && (
+                <p style={{ color: "#9CA3AF", fontSize: "13px" }}>Loading...</p>
+              )}
+
+              {!savedLoading && savedJobs.length === 0 && (
+                <div style={{ textAlign: "center", padding: "24px" }}>
+                  <div style={{ fontSize: "32px", marginBottom: "8px" }}>
+                    🔖
+                  </div>
+                  <p
+                    style={{
+                      color: "#6B7280",
+                      fontSize: "14px",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    No saved jobs yet
+                  </p>
+                  <p style={{ color: "#9CA3AF", fontSize: "12px" }}>
+                    Bookmark jobs from the listings to save them here
+                  </p>
+                </div>
+              )}
+
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: "8px" }}
+              >
+                {savedJobs.map((job) => (
+                  <div
+                    key={job.id}
+                    style={{
+                      background: "#F9FAFB",
+                      border: "1px solid #F3F4F6",
+                      borderRadius: "12px",
+                      padding: "12px 14px",
+                    }}
+                  >
+                    <p
+                      style={{
+                        color: "#111827",
+                        fontWeight: 600,
+                        fontSize: "13px",
+                        marginBottom: "3px",
+                      }}
+                    >
+                      {job.title}
+                    </p>
+                    <p
+                      style={{
+                        color: "#6B7280",
+                        fontSize: "12px",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      🏢 {job.company} · 📍 {job.location}
+                    </p>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Link
+                        to={`/jobs/${job.id}`}
+                        style={{
+                          color: "#2563EB",
+                          fontSize: "12px",
+                          fontWeight: 500,
+                          textDecoration: "none",
+                        }}
+                      >
+                        View →
+                      </Link>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await api.delete("/jobs/bookmarks/", {
+                              data: { job_id: job.id },
+                            });
+                            setSavedJobs(
+                              savedJobs.filter((j) => j.id !== job.id),
+                            );
+                          } catch {
+                            alert("Failed to remove bookmark");
+                          }
+                        }}
+                        style={{
+                          color: "#EF4444",
+                          fontSize: "12px",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

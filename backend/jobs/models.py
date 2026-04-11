@@ -66,3 +66,14 @@ class Application(models.Model):
     def save(self, *args, **kwargs):
         self.clean()  # runs the check every time an application is saved
         super().save(*args, **kwargs)
+    
+class Bookmark(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookmarks')
+    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='bookmarks')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user', 'job']  # can't bookmark same job twice
+
+    def __str__(self):
+        return f"{self.user.email} → {self.job.title}"

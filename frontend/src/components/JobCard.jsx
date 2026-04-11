@@ -1,6 +1,15 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import api from "../api/axios";
 
-const JobCard = ({ job }) => {
+const JobCard = ({ job, bookmarkedIds = [], onBookmarkChange }) => {
+  const { user } = useAuth();
+  const [isBookmarked, setIsBookmarked] = useState(
+    bookmarkedIds.includes(job.id),
+  );
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
+
   const jobTypeColors = {
     full_time: { bg: "#DCFCE7", text: "#15803D", label: "Full Time" },
     part_time: { bg: "#FEF9C3", text: "#A16207", label: "Part Time" },
@@ -28,6 +37,27 @@ const JobCard = ({ job }) => {
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     return `${Math.floor(diff / 86400)}d ago`;
+  };
+
+  const handleBookmark = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user || user.role !== "jobseeker") return;
+    setBookmarkLoading(true);
+    try {
+      if (isBookmarked) {
+        await api.delete("/jobs/bookmarks/", { data: { job_id: job.id } });
+        setIsBookmarked(false);
+      } else {
+        await api.post("/jobs/bookmarks/", { job_id: job.id });
+        setIsBookmarked(true);
+      }
+      onBookmarkChange?.();
+    } catch (err) {
+      console.error("Bookmark error", err);
+    } finally {
+      setBookmarkLoading(false);
+    }
   };
 
   const salary = formatSalary(job.salary_min, job.salary_max);
@@ -102,21 +132,45 @@ const JobCard = ({ job }) => {
                   {job.company}
                 </p>
               </div>
-
-              <span
-                style={{
-                  background: typeStyle.bg,
-                  color: typeStyle.text,
-                  fontSize: "12px",
-                  fontWeight: 500,
-                  padding: "4px 12px",
-                  borderRadius: "999px",
-                  whiteSpace: "nowrap",
-                  flexShrink: 0,
-                }}
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "8px" }}
               >
-                {typeStyle.label}
-              </span>
+                <span
+                  style={{
+                    background: typeStyle.bg,
+                    color: typeStyle.text,
+                    fontSize: "12px",
+                    fontWeight: 500,
+                    padding: "4px 12px",
+                    borderRadius: "999px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {typeStyle.label}
+                </span>
+                {/* Bookmark button */}
+                {user?.role === "jobseeker" && (
+                  <button
+                    onClick={handleBookmark}
+                    disabled={bookmarkLoading}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: "18px",
+                      padding: "2px",
+                      lineHeight: 1,
+                      opacity: bookmarkLoading ? 0.5 : 1,
+                    }}
+                    title={isBookmarked ? "Remove bookmark" : "Save job"}
+                  >
+                    {isBookmarked ? "🔖" : "🔖"}
+                    <span style={{ fontSize: "16px" }}>
+                      {isBookmarked ? "🔖" : "☆"}
+                    </span>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Meta row */}
@@ -128,39 +182,15 @@ const JobCard = ({ job }) => {
                 flexWrap: "wrap",
               }}
             >
-              <span
-                style={{
-                  color: "#9CA3AF",
-                  fontSize: "13px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                }}
-              >
+              <span style={{ color: "#9CA3AF", fontSize: "13px" }}>
                 📍 {job.location}
               </span>
               {salary && (
-                <span
-                  style={{
-                    color: "#9CA3AF",
-                    fontSize: "13px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
-                >
+                <span style={{ color: "#9CA3AF", fontSize: "13px" }}>
                   💰 {salary}
                 </span>
               )}
-              <span
-                style={{
-                  color: "#9CA3AF",
-                  fontSize: "13px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                }}
-              >
+              <span style={{ color: "#9CA3AF", fontSize: "13px" }}>
                 👥 {job.application_count} applicant
                 {job.application_count !== 1 ? "s" : ""}
               </span>
@@ -197,14 +227,7 @@ const JobCard = ({ job }) => {
                 {timeAgo(job.created_at)}
               </span>
               <span
-                style={{
-                  color: "#2563EB",
-                  fontSize: "13px",
-                  fontWeight: 500,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                }}
+                style={{ color: "#2563EB", fontSize: "13px", fontWeight: 500 }}
               >
                 View job →
               </span>
