@@ -252,6 +252,11 @@ const JobDetail = () => {
 
   return (
     <div style={{ minHeight: "100vh", background: "#F8F7F4" }}>
+      <style>{`
+      @media (max-width: 768px) {
+        .skills-grid-detail { grid-template-columns: 1fr !important; }
+      }
+    `}</style>
       {/* Header */}
       <div style={{ background: "#0F1923", padding: "40px 24px" }}>
         <div style={{ maxWidth: "800px", margin: "0 auto" }}>
@@ -1031,6 +1036,7 @@ const JobDetail = () => {
 
                   {/* Skills grid */}
                   <div
+                    className="skills-grid-detail"
                     style={{
                       display: "grid",
                       gridTemplateColumns: "1fr 1fr",

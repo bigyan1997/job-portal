@@ -193,5 +193,5 @@ CHANNEL_LAYERS = {
 WHITENOISE_USE_FINDERS = True
 WHITENOISE_AUTOREFRESH = True
 
-# Email is handled via Brevo SDK in accounts/email_service.py
+
 BREVO_API_KEY = os.getenv('BREVO_API_KEY')
