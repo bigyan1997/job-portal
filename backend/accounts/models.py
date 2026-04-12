@@ -39,6 +39,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     portfolio = models.URLField(blank=True)
 
     ai_analyses_used = models.IntegerField(default=0)
+
+    ats_score = models.IntegerField(null=True, blank=True)
+    ats_feedback = models.JSONField(null=True, blank=True)
+    ats_analysed_at = models.DateTimeField(null=True, blank=True)
+    ats_analyses_used = models.IntegerField(default=0)
+
     is_pro = models.BooleanField(default=False)
     pro_since = models.DateTimeField(null=True, blank=True)
     stripe_customer_id = models.CharField(max_length=255, blank=True)

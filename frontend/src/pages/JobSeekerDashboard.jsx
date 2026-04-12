@@ -24,6 +24,49 @@ const JobSeekerDashboard = () => {
   const [currentResume, setCurrentResume] = useState(user?.resume || null);
   const [savedJobs, setSavedJobs] = useState([]);
   const [savedLoading, setSavedLoading] = useState(true);
+  const [atsData, setAtsData] = useState(null);
+  const [atsLoading, setAtsLoading] = useState(false);
+  const [atsAnalysing, setAtsAnalysing] = useState(false);
+  const [atsMessage, setAtsMessage] = useState("Analysing your resume...");
+
+  const handleATSAnalysis = async () => {
+    setAtsAnalysing(true);
+    setAtsMessage("Analysing your resume...");
+
+    const messages = [
+      "Analysing your resume...",
+      "Checking ATS compatibility...",
+      "Reviewing section headers...",
+      "Analysing keywords and skills...",
+      "Checking formatting...",
+      "Nearly done...",
+    ];
+
+    let i = 0;
+    const interval = setInterval(() => {
+      i++;
+      if (i < messages.length) setAtsMessage(messages[i]);
+    }, 3000);
+
+    try {
+      const res = await api.post("/jobs/ats-analysis/");
+      clearInterval(interval);
+      setAtsData(res.data);
+      const updatedUser = await api.get("/auth/me/");
+      updateUser(updatedUser.data);
+    } catch (err) {
+      clearInterval(interval);
+      if (err.response?.status === 402) {
+        alert(
+          "You've used all 2 free ATS analyses. Upgrade to Pro for unlimited!",
+        );
+      } else {
+        alert("ATS analysis failed. Please try again.");
+      }
+    } finally {
+      setAtsAnalysing(false);
+    }
+  };
 
   useEffect(() => {
     const fetchSavedJobs = async () => {
@@ -37,6 +80,16 @@ const JobSeekerDashboard = () => {
       }
     };
     fetchSavedJobs();
+  }, []);
+
+  useEffect(() => {
+    const fetchATSData = async () => {
+      try {
+        const res = await api.get("/jobs/ats-analysis/");
+        if (res.data.analysed) setAtsData(res.data);
+      } catch {}
+    };
+    fetchATSData();
   }, []);
 
   useEffect(() => {
@@ -87,6 +140,7 @@ const JobSeekerDashboard = () => {
       });
       setCurrentResume(res.data.resume);
       updateUser(res.data);
+      setAtsData(null);
       setResumeSuccess("Resume uploaded successfully!");
       setTimeout(() => setResumeSuccess(""), 3000);
     } catch (err) {
@@ -721,7 +775,458 @@ const JobSeekerDashboard = () => {
                 </Link>
               </div>
             )}
+            {/* ATS Score Card */}
+            {currentResume && (
+              <div
+                style={{
+                  background: "#fff",
+                  borderRadius: "16px",
+                  border: "1px solid #F3F4F6",
+                  padding: "24px",
+                  marginBottom: "24px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    marginBottom: "16px",
+                  }}
+                >
+                  <p
+                    style={{
+                      color: "#111827",
+                      fontSize: "14px",
+                      fontWeight: 700,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    🤖 ATS Resume Score
+                  </p>
+                  <div
+                    style={{ flex: 1, height: "1px", background: "#E5E7EB" }}
+                  />
+                  {!user?.is_pro && (
+                    <span
+                      style={{
+                        color: "#9CA3AF",
+                        fontSize: "11px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {2 - (user?.ats_analyses_used || 0)} free left
+                    </span>
+                  )}
+                </div>
 
+                {/* Info note */}
+                <div
+                  style={{
+                    background: "#F0F9FF",
+                    border: "1px solid #BAE6FD",
+                    borderRadius: "10px",
+                    padding: "10px 14px",
+                    marginBottom: "16px",
+                    display: "flex",
+                    gap: "8px",
+                  }}
+                >
+                  <span style={{ fontSize: "14px", flexShrink: 0 }}>ℹ️</span>
+                  <p
+                    style={{
+                      color: "#0369A1",
+                      fontSize: "12px",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    This analyses your resume for{" "}
+                    <strong>ATS compatibility</strong> — not a specific job
+                    match. ATS (Applicant Tracking Systems) are used by
+                    employers to filter resumes before humans see them.
+                  </p>
+                </div>
+
+                {!atsData ? (
+                  <div style={{ textAlign: "center", padding: "20px 0" }}>
+                    <div style={{ fontSize: "40px", marginBottom: "12px" }}>
+                      📄
+                    </div>
+                    <p
+                      style={{
+                        color: "#111827",
+                        fontWeight: 600,
+                        fontSize: "15px",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      Check your ATS score
+                    </p>
+                    <p
+                      style={{
+                        color: "#9CA3AF",
+                        fontSize: "13px",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      Find out how well your resume performs with Applicant
+                      Tracking Systems
+                    </p>
+                    <button
+                      onClick={handleATSAnalysis}
+                      disabled={
+                        atsAnalysing ||
+                        (!user?.is_pro && user?.ats_analyses_used >= 2)
+                      }
+                      style={{
+                        background: atsAnalysing
+                          ? "#93C5FD"
+                          : !user?.is_pro && user?.ats_analyses_used >= 2
+                            ? "#F3F4F6"
+                            : "#111827",
+                        color: atsAnalysing
+                          ? "#fff"
+                          : !user?.is_pro && user?.ats_analyses_used >= 2
+                            ? "#9CA3AF"
+                            : "#fff",
+                        border: "none",
+                        borderRadius: "10px",
+                        padding: "12px 28px",
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        cursor:
+                          atsAnalysing ||
+                          (!user?.is_pro && user?.ats_analyses_used >= 2)
+                            ? "not-allowed"
+                            : "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}
+                    >
+                      {atsAnalysing ? (
+                        <>
+                          <svg
+                            className="animate-spin h-4 w-4"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8v8z"
+                            />
+                          </svg>
+                          {atsMessage}
+                        </>
+                      ) : !user?.is_pro && user?.ats_analyses_used >= 2 ? (
+                        "⚡ Upgrade for more analyses"
+                      ) : (
+                        "🔍 Analyse ATS Score"
+                      )}
+                    </button>
+                    {atsAnalysing && (
+                      <p
+                        style={{
+                          color: "#9CA3AF",
+                          fontSize: "12px",
+                          marginTop: "12px",
+                        }}
+                      >
+                        This usually takes 15–30 seconds. Please don't refresh
+                        the page.
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    {/* Score circle + summary */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "20px",
+                        marginBottom: "20px",
+                        padding: "16px",
+                        background: "#F9FAFB",
+                        borderRadius: "12px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "80px",
+                          height: "80px",
+                          borderRadius: "50%",
+                          flexShrink: 0,
+                          border: `5px solid ${atsData.ats_score >= 80 ? "#22C55E" : atsData.ats_score >= 60 ? "#EAB308" : "#EF4444"}`,
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: "20px",
+                            fontWeight: 800,
+                            color:
+                              atsData.ats_score >= 80
+                                ? "#15803D"
+                                : atsData.ats_score >= 60
+                                  ? "#A16207"
+                                  : "#B91C1C",
+                            lineHeight: 1,
+                          }}
+                        >
+                          {atsData.ats_score}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: "10px",
+                            color: "#9CA3AF",
+                            marginTop: "2px",
+                          }}
+                        >
+                          / 100
+                        </span>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <p
+                          style={{
+                            color: "#111827",
+                            fontWeight: 700,
+                            fontSize: "15px",
+                            marginBottom: "6px",
+                          }}
+                        >
+                          {atsData.ats_score >= 80
+                            ? "🎉 Excellent ATS score!"
+                            : atsData.ats_score >= 60
+                              ? "👍 Good, but room to improve"
+                              : "⚠️ Needs improvement"}
+                        </p>
+                        <div
+                          style={{
+                            background: "#E5E7EB",
+                            borderRadius: "999px",
+                            height: "8px",
+                            overflow: "hidden",
+                            marginBottom: "6px",
+                          }}
+                        >
+                          <div
+                            style={{
+                              height: "100%",
+                              borderRadius: "999px",
+                              width: `${atsData.ats_score}%`,
+                              background:
+                                atsData.ats_score >= 80
+                                  ? "#22C55E"
+                                  : atsData.ats_score >= 60
+                                    ? "#EAB308"
+                                    : "#EF4444",
+                            }}
+                          />
+                        </div>
+                        <p style={{ color: "#6B7280", fontSize: "12px" }}>
+                          {atsData.ats_feedback?.summary}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Breakdown */}
+                    {atsData.ats_feedback?.breakdown && (
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "8px",
+                          marginBottom: "16px",
+                        }}
+                      >
+                        {atsData.ats_feedback.breakdown.map((item, i) => (
+                          <div
+                            key={i}
+                            style={{
+                              display: "flex",
+                              alignItems: "flex-start",
+                              gap: "10px",
+                              padding: "10px 12px",
+                              background:
+                                item.status === "good"
+                                  ? "#F0FDF4"
+                                  : item.status === "warning"
+                                    ? "#FEFCE8"
+                                    : "#FEF2F2",
+                              borderRadius: "10px",
+                            }}
+                          >
+                            <span style={{ fontSize: "14px", flexShrink: 0 }}>
+                              {item.status === "good"
+                                ? "✅"
+                                : item.status === "warning"
+                                  ? "⚠️"
+                                  : "❌"}
+                            </span>
+                            <div>
+                              <p
+                                style={{
+                                  color: "#111827",
+                                  fontSize: "13px",
+                                  fontWeight: 600,
+                                  marginBottom: "2px",
+                                }}
+                              >
+                                {item.category}
+                              </p>
+                              <p
+                                style={{
+                                  color: "#6B7280",
+                                  fontSize: "12px",
+                                  lineHeight: 1.5,
+                                }}
+                              >
+                                {item.message}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Strengths */}
+                    {atsData.ats_feedback?.strengths?.length > 0 && (
+                      <div style={{ marginBottom: "12px" }}>
+                        <p
+                          style={{
+                            color: "#15803D",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            marginBottom: "8px",
+                            letterSpacing: "0.05em",
+                          }}
+                        >
+                          💪 STRENGTHS
+                        </p>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "4px",
+                          }}
+                        >
+                          {atsData.ats_feedback.strengths.map((s, i) => (
+                            <p
+                              key={i}
+                              style={{
+                                color: "#374151",
+                                fontSize: "13px",
+                                padding: "6px 10px",
+                                background: "#F0FDF4",
+                                borderRadius: "8px",
+                              }}
+                            >
+                              • {s}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Top issues */}
+                    {atsData.ats_feedback?.top_issues?.length > 0 && (
+                      <div style={{ marginBottom: "16px" }}>
+                        <p
+                          style={{
+                            color: "#B91C1C",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            marginBottom: "8px",
+                            letterSpacing: "0.05em",
+                          }}
+                        >
+                          🔧 TOP ISSUES TO FIX
+                        </p>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "4px",
+                          }}
+                        >
+                          {atsData.ats_feedback.top_issues.map((issue, i) => (
+                            <p
+                              key={i}
+                              style={{
+                                color: "#374151",
+                                fontSize: "13px",
+                                padding: "6px 10px",
+                                background: "#FEF2F2",
+                                borderRadius: "8px",
+                              }}
+                            >
+                              • {issue}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Re-analyse button */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <p style={{ color: "#9CA3AF", fontSize: "11px" }}>
+                        Last analysed{" "}
+                        {new Date(atsData.ats_analysed_at).toLocaleDateString(
+                          "en-AU",
+                          { month: "short", day: "numeric", year: "numeric" },
+                        )}
+                      </p>
+                      <button
+                        onClick={handleATSAnalysis}
+                        disabled={
+                          atsAnalysing ||
+                          (!user?.is_pro && user?.ats_analyses_used >= 2)
+                        }
+                        style={{
+                          color:
+                            !user?.is_pro && user?.ats_analyses_used >= 2
+                              ? "#9CA3AF"
+                              : "#2563EB",
+                          fontSize: "12px",
+                          background: "none",
+                          border: "none",
+                          cursor:
+                            !user?.is_pro && user?.ats_analyses_used >= 2
+                              ? "not-allowed"
+                              : "pointer",
+                          fontWeight: 500,
+                        }}
+                      >
+                        {atsAnalysing
+                          ? "Analysing..."
+                          : !user?.is_pro && user?.ats_analyses_used >= 2
+                            ? "No analyses left"
+                            : "Re-analyse →"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             {/* Applications list */}
             <div
               style={{ display: "flex", flexDirection: "column", gap: "12px" }}

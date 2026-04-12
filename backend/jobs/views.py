@@ -96,6 +96,55 @@ def run_ai_analysis(application):
     except Exception as e:
         print(f'AI analysis failed: {e}')
 
+class ATSAnalysisView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """Return saved ATS analysis"""
+        if request.user.ats_score is None:
+            return Response({'analysed': False})
+        return Response({
+            'analysed': True,
+            'ats_score': request.user.ats_score,
+            'ats_feedback': request.user.ats_feedback,
+            'ats_analysed_at': request.user.ats_analysed_at,
+        })
+
+    def post(self, request):
+        if not request.user.resume:
+            return Response({'error': 'Please upload your resume first'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check limit for non-pro users
+        ATS_FREE_LIMIT = 2
+        if not request.user.is_pro and request.user.ats_analyses_used >= ATS_FREE_LIMIT:
+            return Response({
+                'error': 'limit_reached',
+                'message': 'You have used all 2 free ATS analyses. Upgrade to Pro for unlimited analyses.',
+            }, status=status.HTTP_402_PAYMENT_REQUIRED)
+
+        from .ai_service import analyse_ats_resume
+        from django.utils import timezone
+
+        result = analyse_ats_resume(request.user.resume)
+        if not result:
+            return Response({'error': 'ATS analysis failed'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Increment counter and save
+        request.user.ats_score = result.get('ats_score')
+        request.user.ats_feedback = result
+        request.user.ats_analysed_at = timezone.now()
+        if not request.user.is_pro:
+            request.user.ats_analyses_used += 1
+        request.user.save()
+
+        return Response({
+            'analysed': True,
+            'ats_score': request.user.ats_score,
+            'ats_feedback': request.user.ats_feedback,
+            'ats_analysed_at': request.user.ats_analysed_at,
+            'ats_analyses_used': request.user.ats_analyses_used,
+        })
+
 
 class JobListView(APIView):
     def get_permissions(self):

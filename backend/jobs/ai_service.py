@@ -217,3 +217,68 @@ Return ONLY raw JSON, no markdown:
     except Exception as e:
         print(f'Resume suggestions error: {e}')
         return None
+
+def analyse_ats_resume(resume_file_path):
+    """
+    Analyse resume for ATS compatibility and return score + feedback.
+    Completely independent of any job description.
+    """
+    actual_path = get_resume_path(resume_file_path)
+    if not actual_path:
+        print('Could not get resume path')
+        return None
+
+    resume_text = extract_text_from_pdf(actual_path)
+    if not resume_text:
+        print('No text extracted from PDF')
+        return None
+
+    prompt = f"""
+You are an expert ATS (Applicant Tracking System) specialist and resume coach.
+Analyse this resume purely for ATS compatibility and overall quality — NOT for any specific job.
+
+RESUME:
+{resume_text}
+
+Score the resume from 0-100 based on these ATS criteria:
+1. Contact information present (name, email, phone)
+2. Clear section headers (Experience, Education, Skills, Summary)
+3. Bullet points with action verbs
+4. Quantified achievements (numbers, percentages, results)
+5. Relevant keywords and industry terms
+6. Appropriate length (1-2 pages)
+7. No complex tables, columns or graphics that ATS can't parse
+8. Consistent date formatting
+9. Skills section present
+10. Professional summary/objective present
+
+Return ONLY raw JSON:
+{{
+    "ats_score": <integer 0-100>,
+    "summary": "<2 sentence overall assessment>",
+    "breakdown": [
+        {{
+            "category": "<category name>",
+            "status": "<good|warning|error>",
+            "message": "<specific feedback for this category>"
+        }}
+    ],
+    "top_issues": ["<most critical issue 1>", "<most critical issue 2>", "<most critical issue 3>"],
+    "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"]
+}}
+"""
+
+    try:
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type='application/json',
+            ),
+        )
+        raw = response.text.strip()
+        print(f'ATS analysis response: {raw[:200]}')
+        return json.loads(raw)
+    except Exception as e:
+        print(f'ATS analysis error: {e}')
+        return None
