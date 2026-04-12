@@ -125,6 +125,10 @@ const Home = () => {
   const [search, setSearch] = useState("");
   const [jobType, setJobType] = useState("");
   const [activeType, setActiveType] = useState("");
+  const [location, setLocation] = useState("");
+  const [datePosted, setDatePosted] = useState("");
+  const [sort, setSort] = useState("newest");
+  const [showFilters, setShowFilters] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState([]);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -135,6 +139,9 @@ const Home = () => {
       const params = {};
       if (search) params.search = search;
       if (jobType) params.job_type = jobType;
+      if (location) params.location = location;
+      if (datePosted) params.date_posted = datePosted;
+      if (sort) params.sort = sort;
       const res = await api.get("/jobs/", { params });
       setJobs(res.data);
     } catch (err) {
@@ -147,7 +154,7 @@ const Home = () => {
   useEffect(() => {
     const delay = setTimeout(() => fetchJobs(false), 400);
     return () => clearTimeout(delay);
-  }, [search, jobType]);
+  }, [search, jobType, location, datePosted, sort]);
 
   useEffect(() => {
     const fetchBookmarks = async () => {
@@ -163,6 +170,17 @@ const Home = () => {
     setActiveType(value);
     setJobType(value);
   };
+  const resetFilters = () => {
+    setSearch("");
+    setJobType("");
+    setActiveType("");
+    setLocation("");
+    setDatePosted("");
+    setSort("newest");
+  };
+
+  const hasActiveFilters =
+    search || jobType || location || datePosted || sort !== "newest";
 
   const featuredJobs = jobs.slice(0, 3);
 
@@ -1068,53 +1086,224 @@ const Home = () => {
         </div>
       </div>
 
-      {/* ── FILTER PILLS ── */}
+      {/* Filter bar */}
       <div
         className="filter-bar"
         style={{
           background: "#FFFFFF",
           borderBottom: "1px solid #E5E7EB",
-          padding: "0 24px",
           position: "sticky",
           top: "60px",
           zIndex: 40,
         }}
       >
         <div
-          style={{
-            maxWidth: "1100px",
-            margin: "0 auto",
-            display: "flex",
-            gap: "4px",
-            overflowX: "auto",
-            padding: "12px 0",
-            scrollbarWidth: "none",
-          }}
+          style={{ maxWidth: "1100px", margin: "0 auto", padding: "12px 24px" }}
         >
-          {JOB_TYPES.map((type) => (
-            <button
-              key={type.value}
-              onClick={() => handleTypeFilter(type.value)}
+          {/* Row 1 — Job type pills + Filter button */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              overflowX: "auto",
+              scrollbarWidth: "none",
+            }}
+          >
+            <div
               style={{
-                padding: "8px 18px",
+                display: "flex",
+                gap: "4px",
+                flex: 1,
+                overflowX: "auto",
+                scrollbarWidth: "none",
+              }}
+            >
+              {JOB_TYPES.map((type) => (
+                <button
+                  key={type.value}
+                  onClick={() => handleTypeFilter(type.value)}
+                  style={{
+                    padding: "7px 16px",
+                    borderRadius: "999px",
+                    whiteSpace: "nowrap",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    cursor: "pointer",
+                    border:
+                      activeType === type.value
+                        ? "1px solid #0F1923"
+                        : "1px solid #E5E7EB",
+                    background:
+                      activeType === type.value ? "#0F1923" : "transparent",
+                    color: activeType === type.value ? "#FFFFFF" : "#6B7280",
+                    transition: "all 0.15s",
+                    flexShrink: 0,
+                  }}
+                >
+                  {type.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Filter toggle button */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "7px 16px",
                 borderRadius: "999px",
-                whiteSpace: "nowrap",
                 fontSize: "13px",
                 fontWeight: 500,
                 cursor: "pointer",
                 border:
-                  activeType === type.value
+                  showFilters || hasActiveFilters
                     ? "1px solid #0F1923"
                     : "1px solid #E5E7EB",
                 background:
-                  activeType === type.value ? "#0F1923" : "transparent",
-                color: activeType === type.value ? "#FFFFFF" : "#6B7280",
+                  showFilters || hasActiveFilters ? "#0F1923" : "transparent",
+                color: showFilters || hasActiveFilters ? "#fff" : "#6B7280",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
                 transition: "all 0.15s",
               }}
             >
-              {type.label}
+              🎛 Filters{" "}
+              {hasActiveFilters && !jobType && (
+                <span
+                  style={{
+                    background: "#EF4444",
+                    color: "#fff",
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    padding: "1px 6px",
+                    borderRadius: "999px",
+                  }}
+                >
+                  !
+                </span>
+              )}
             </button>
-          ))}
+
+            {/* Sort dropdown */}
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              style={{
+                padding: "7px 12px",
+                borderRadius: "999px",
+                fontSize: "13px",
+                fontWeight: 500,
+                cursor: "pointer",
+                border: "1px solid #E5E7EB",
+                background: "#fff",
+                color: "#6B7280",
+                outline: "none",
+                flexShrink: 0,
+              }}
+            >
+              <option value="newest">🕐 Newest</option>
+              <option value="oldest">🕐 Oldest</option>
+              <option value="most_applicants">👥 Most Applicants</option>
+              <option value="salary_high">💰 Salary High-Low</option>
+              <option value="salary_low">💰 Salary Low-High</option>
+            </select>
+          </div>
+
+          {/* Row 2 — Expanded filters */}
+          {showFilters && (
+            <div
+              style={{
+                marginTop: "12px",
+                paddingTop: "12px",
+                borderTop: "1px solid #F3F4F6",
+                display: "flex",
+                gap: "12px",
+                flexWrap: "wrap",
+                alignItems: "center",
+              }}
+            >
+              {/* Location */}
+              <div style={{ position: "relative", flex: 1, minWidth: "180px" }}>
+                <span
+                  style={{
+                    position: "absolute",
+                    left: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    fontSize: "14px",
+                  }}
+                >
+                  📍
+                </span>
+                <input
+                  type="text"
+                  placeholder="Filter by location..."
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  style={{
+                    width: "100%",
+                    border: "1px solid #E5E7EB",
+                    borderRadius: "10px",
+                    padding: "9px 12px 9px 34px",
+                    fontSize: "13px",
+                    outline: "none",
+                    boxSizing: "border-box",
+                    color: "#111827",
+                  }}
+                  onFocus={(e) => (e.target.style.borderColor = "#2563EB")}
+                  onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
+                />
+              </div>
+
+              {/* Date posted */}
+              <select
+                value={datePosted}
+                onChange={(e) => setDatePosted(e.target.value)}
+                style={{
+                  padding: "9px 12px",
+                  borderRadius: "10px",
+                  fontSize: "13px",
+                  border: "1px solid #E5E7EB",
+                  background: "#fff",
+                  color: datePosted ? "#111827" : "#6B7280",
+                  outline: "none",
+                  cursor: "pointer",
+                }}
+              >
+                <option value="">📅 Any time</option>
+                <option value="today">📅 Last 24 hours</option>
+                <option value="week">📅 Last 7 days</option>
+                <option value="month">📅 Last 30 days</option>
+              </select>
+
+              {/* Reset */}
+              {hasActiveFilters && (
+                <button
+                  onClick={resetFilters}
+                  style={{
+                    padding: "9px 16px",
+                    borderRadius: "10px",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    cursor: "pointer",
+                    border: "1px solid #FECACA",
+                    background: "#FEF2F2",
+                    color: "#B91C1C",
+                  }}
+                >
+                  ✕ Reset filters
+                </button>
+              )}
+
+              {/* Active filter count */}
+              <p style={{ color: "#9CA3AF", fontSize: "12px" }}>
+                {jobs.length} job{jobs.length !== 1 ? "s" : ""} found
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1234,9 +1423,32 @@ const Home = () => {
             >
               No jobs found
             </h3>
-            <p style={{ color: "#9CA3AF", fontSize: "14px" }}>
-              Try a different search term or check back later
+            <p
+              style={{
+                color: "#9CA3AF",
+                fontSize: "14px",
+                marginBottom: "16px",
+              }}
+            >
+              Try a different search term or adjust your filters
             </p>
+            {hasActiveFilters && (
+              <button
+                onClick={resetFilters}
+                style={{
+                  background: "#111827",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "10px",
+                  padding: "10px 24px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Reset filters
+              </button>
+            )}
           </div>
         )}
 

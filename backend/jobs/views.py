@@ -3,8 +3,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
 from .models import Job, Application, Bookmark
 from .serializers import JobSerializer, ApplicationSerializer
 from .ai_service import analyze_resume
@@ -102,11 +104,11 @@ class JobListView(APIView):
         return [IsAuthenticated()]
 
     def get(self, request):
-        from django.utils import timezone
         # Auto-close expired jobs
         Job.objects.filter(status='active', expires_at__lt=timezone.now()).update(status='closed')
-        jobs = Job.objects.filter(status='active').order_by('-created_at')
+        jobs = Job.objects.filter(status='active')
 
+        # Search
         search = request.query_params.get('search')
         if search:
             terms = search.split()
@@ -119,9 +121,37 @@ class JobListView(APIView):
                 )
             jobs = jobs.filter(query)
 
+        # Job type
         job_type = request.query_params.get('job_type')
         if job_type:
             jobs = jobs.filter(job_type=job_type)
+
+        # Location
+        location = request.query_params.get('location')
+        if location:
+            jobs = jobs.filter(location__icontains=location)
+
+        # Date posted
+        date_posted = request.query_params.get('date_posted')
+        if date_posted == 'today':
+            jobs = jobs.filter(created_at__gte=timezone.now() - timedelta(hours=24))
+        elif date_posted == 'week':
+            jobs = jobs.filter(created_at__gte=timezone.now() - timedelta(days=7))
+        elif date_posted == 'month':
+            jobs = jobs.filter(created_at__gte=timezone.now() - timedelta(days=30))
+
+        # Sort
+        sort = request.query_params.get('sort', 'newest')
+        if sort == 'newest':
+            jobs = jobs.order_by('-created_at')
+        elif sort == 'oldest':
+            jobs = jobs.order_by('created_at')
+        elif sort == 'most_applicants':
+            jobs = jobs.annotate(app_count=Count('applications')).order_by('-app_count')
+        elif sort == 'salary_high':
+            jobs = jobs.order_by('-salary_max')
+        elif sort == 'salary_low':
+            jobs = jobs.order_by('salary_min')
 
         serializer = JobSerializer(jobs, many=True)
         return Response(serializer.data)
