@@ -349,61 +349,53 @@ const Home = () => {
               <div
                 style={{
                   display: "flex",
-                  gap: "8px",
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "14px",
-                  padding: "6px",
+                  gap: "12px",
                   marginBottom: "40px",
+                  flexWrap: "wrap",
                 }}
               >
-                <div style={{ flex: 1, position: "relative" }}>
-                  <span
-                    style={{
-                      position: "absolute",
-                      left: "14px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      color: "#475569",
-                      fontSize: "15px",
-                    }}
-                  >
-                    🔍
-                  </span>
-                  <input
-                    type="text"
-                    placeholder="Search by job title, company or location..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && fetchJobs()}
-                    style={{
-                      width: "100%",
-                      background: "transparent",
-                      border: "none",
-                      padding: "13px 14px 13px 42px",
-                      color: "#F1F5F9",
-                      fontSize: "14px",
-                      outline: "none",
-                      boxSizing: "border-box",
-                    }}
-                  />
-                </div>
                 <button
-                  onClick={fetchJobs}
+                  onClick={() =>
+                    document
+                      .querySelector(".filter-bar")
+                      ?.scrollIntoView({ behavior: "smooth" })
+                  }
                   style={{
                     background: "#2563EB",
                     color: "#fff",
                     border: "none",
-                    borderRadius: "10px",
-                    padding: "13px 24px",
+                    borderRadius: "12px",
+                    padding: "14px 28px",
                     fontWeight: 600,
-                    fontSize: "14px",
+                    fontSize: "15px",
                     cursor: "pointer",
-                    whiteSpace: "nowrap",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
                   }}
                 >
-                  Search Jobs
+                  🔍 Browse Jobs
                 </button>
+                {!user && (
+                  <Link
+                    to="/register"
+                    style={{
+                      background: "rgba(255,255,255,0.1)",
+                      color: "#F1F5F9",
+                      border: "1px solid rgba(255,255,255,0.15)",
+                      borderRadius: "12px",
+                      padding: "14px 28px",
+                      fontWeight: 600,
+                      fontSize: "15px",
+                      textDecoration: "none",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    Get started free →
+                  </Link>
+                )}
               </div>
 
               <div
