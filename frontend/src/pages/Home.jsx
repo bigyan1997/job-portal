@@ -1100,100 +1100,139 @@ const Home = () => {
         <div
           style={{ maxWidth: "1100px", margin: "0 auto", padding: "12px 24px" }}
         >
-          {/* Row 1 — Job type pills + Filter button */}
+          {/* Row 1 — Search inputs + filters */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
               gap: "8px",
-              overflowX: "auto",
-              scrollbarWidth: "none",
+              flexWrap: "wrap",
             }}
           >
+            {/* Combined search bar */}
             <div
               style={{
                 display: "flex",
-                gap: "4px",
                 flex: 1,
-                overflowX: "auto",
-                scrollbarWidth: "none",
+                minWidth: "300px",
+                background: "#F9FAFB",
+                border: "1px solid #E5E7EB",
+                borderRadius: "12px",
+                overflow: "hidden",
               }}
             >
-              {JOB_TYPES.map((type) => (
-                <button
-                  key={type.value}
-                  onClick={() => handleTypeFilter(type.value)}
-                  style={{
-                    padding: "7px 16px",
-                    borderRadius: "999px",
-                    whiteSpace: "nowrap",
-                    fontSize: "13px",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    border:
-                      activeType === type.value
-                        ? "1px solid #0F1923"
-                        : "1px solid #E5E7EB",
-                    background:
-                      activeType === type.value ? "#0F1923" : "transparent",
-                    color: activeType === type.value ? "#FFFFFF" : "#6B7280",
-                    transition: "all 0.15s",
-                    flexShrink: 0,
-                  }}
-                >
-                  {type.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Filter toggle button */}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: "7px 16px",
-                borderRadius: "999px",
-                fontSize: "13px",
-                fontWeight: 500,
-                cursor: "pointer",
-                border:
-                  showFilters || hasActiveFilters
-                    ? "1px solid #0F1923"
-                    : "1px solid #E5E7EB",
-                background:
-                  showFilters || hasActiveFilters ? "#0F1923" : "transparent",
-                color: showFilters || hasActiveFilters ? "#fff" : "#6B7280",
-                whiteSpace: "nowrap",
-                flexShrink: 0,
-                transition: "all 0.15s",
-              }}
-            >
-              🎛 Filters{" "}
-              {hasActiveFilters && !jobType && (
+              {/* Job title / keyword */}
+              <div
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "0 14px",
+                  gap: "8px",
+                }}
+              >
                 <span
-                  style={{
-                    background: "#EF4444",
-                    color: "#fff",
-                    fontSize: "10px",
-                    fontWeight: 700,
-                    padding: "1px 6px",
-                    borderRadius: "999px",
-                  }}
+                  style={{ fontSize: "14px", color: "#9CA3AF", flexShrink: 0 }}
                 >
-                  !
+                  🔍
                 </span>
-              )}
-            </button>
+                <input
+                  type="text"
+                  placeholder="Job title, keywords or company"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && fetchJobs()}
+                  style={{
+                    flex: 1,
+                    border: "none",
+                    background: "transparent",
+                    fontSize: "13px",
+                    color: "#111827",
+                    outline: "none",
+                    padding: "10px 0",
+                  }}
+                />
+              </div>
+
+              {/* Divider */}
+              <div
+                style={{ width: "1px", background: "#E5E7EB", margin: "8px 0" }}
+              />
+
+              {/* Location */}
+              <div
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "0 14px",
+                  gap: "8px",
+                }}
+              >
+                <span
+                  style={{ fontSize: "14px", color: "#9CA3AF", flexShrink: 0 }}
+                >
+                  📍
+                </span>
+                <input
+                  type="text"
+                  placeholder="Location e.g. Sydney NSW"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && fetchJobs()}
+                  style={{
+                    flex: 1,
+                    border: "none",
+                    background: "transparent",
+                    fontSize: "13px",
+                    color: "#111827",
+                    outline: "none",
+                    padding: "10px 0",
+                  }}
+                />
+                {location && (
+                  <button
+                    onClick={() => setLocation("")}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "#9CA3AF",
+                      fontSize: "16px",
+                      padding: 0,
+                      lineHeight: 1,
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+
+              {/* Search button */}
+              <button
+                onClick={fetchJobs}
+                style={{
+                  background: "#2563EB",
+                  color: "#fff",
+                  border: "none",
+                  padding: "0 20px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Find Jobs
+              </button>
+            </div>
 
             {/* Sort dropdown */}
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
               style={{
-                padding: "7px 12px",
-                borderRadius: "999px",
+                padding: "10px 12px",
+                borderRadius: "10px",
                 fontSize: "13px",
                 fontWeight: 500,
                 cursor: "pointer",
@@ -1212,98 +1251,94 @@ const Home = () => {
             </select>
           </div>
 
-          {/* Row 2 — Expanded filters */}
-          {showFilters && (
+          {/* Row 2 — Job type pills + date filter */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              marginTop: "10px",
+              flexWrap: "wrap",
+            }}
+          >
             <div
               style={{
-                marginTop: "12px",
-                paddingTop: "12px",
-                borderTop: "1px solid #F3F4F6",
                 display: "flex",
-                gap: "12px",
-                flexWrap: "wrap",
-                alignItems: "center",
+                gap: "4px",
+                overflowX: "auto",
+                scrollbarWidth: "none",
+                flex: 1,
               }}
             >
-              {/* Location */}
-              <div style={{ position: "relative", flex: 1, minWidth: "180px" }}>
-                <span
-                  style={{
-                    position: "absolute",
-                    left: "12px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    fontSize: "14px",
-                  }}
-                >
-                  📍
-                </span>
-                <input
-                  type="text"
-                  placeholder="Filter by location..."
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  style={{
-                    width: "100%",
-                    border: "1px solid #E5E7EB",
-                    borderRadius: "10px",
-                    padding: "9px 12px 9px 34px",
-                    fontSize: "13px",
-                    outline: "none",
-                    boxSizing: "border-box",
-                    color: "#111827",
-                  }}
-                  onFocus={(e) => (e.target.style.borderColor = "#2563EB")}
-                  onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
-                />
-              </div>
-
-              {/* Date posted */}
-              <select
-                value={datePosted}
-                onChange={(e) => setDatePosted(e.target.value)}
-                style={{
-                  padding: "9px 12px",
-                  borderRadius: "10px",
-                  fontSize: "13px",
-                  border: "1px solid #E5E7EB",
-                  background: "#fff",
-                  color: datePosted ? "#111827" : "#6B7280",
-                  outline: "none",
-                  cursor: "pointer",
-                }}
-              >
-                <option value="">📅 Any time</option>
-                <option value="today">📅 Last 24 hours</option>
-                <option value="week">📅 Last 7 days</option>
-                <option value="month">📅 Last 30 days</option>
-              </select>
-
-              {/* Reset */}
-              {hasActiveFilters && (
+              {JOB_TYPES.map((type) => (
                 <button
-                  onClick={resetFilters}
+                  key={type.value}
+                  onClick={() => handleTypeFilter(type.value)}
                   style={{
-                    padding: "9px 16px",
-                    borderRadius: "10px",
-                    fontSize: "13px",
+                    padding: "6px 14px",
+                    borderRadius: "999px",
+                    whiteSpace: "nowrap",
+                    fontSize: "12px",
                     fontWeight: 500,
                     cursor: "pointer",
-                    border: "1px solid #FECACA",
-                    background: "#FEF2F2",
-                    color: "#B91C1C",
+                    border:
+                      activeType === type.value
+                        ? "1px solid #0F1923"
+                        : "1px solid #E5E7EB",
+                    background:
+                      activeType === type.value ? "#0F1923" : "transparent",
+                    color: activeType === type.value ? "#FFFFFF" : "#6B7280",
+                    transition: "all 0.15s",
+                    flexShrink: 0,
                   }}
                 >
-                  ✕ Reset filters
+                  {type.label}
                 </button>
-              )}
-
-              {/* Active filter count */}
-              <p style={{ color: "#9CA3AF", fontSize: "12px" }}>
-                {jobs.length} job{jobs.length !== 1 ? "s" : ""} found
-              </p>
+              ))}
             </div>
-          )}
+
+            {/* Date posted */}
+            <select
+              value={datePosted}
+              onChange={(e) => setDatePosted(e.target.value)}
+              style={{
+                padding: "6px 12px",
+                borderRadius: "999px",
+                fontSize: "12px",
+                border: "1px solid #E5E7EB",
+                background: "#fff",
+                color: datePosted ? "#111827" : "#6B7280",
+                outline: "none",
+                cursor: "pointer",
+                flexShrink: 0,
+              }}
+            >
+              <option value="">📅 Any time</option>
+              <option value="today">📅 Last 24 hours</option>
+              <option value="week">📅 Last 7 days</option>
+              <option value="month">📅 Last 30 days</option>
+            </select>
+
+            {/* Reset */}
+            {hasActiveFilters && (
+              <button
+                onClick={resetFilters}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: "999px",
+                  fontSize: "12px",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  border: "1px solid #FECACA",
+                  background: "#FEF2F2",
+                  color: "#B91C1C",
+                  flexShrink: 0,
+                }}
+              >
+                ✕ Reset
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
