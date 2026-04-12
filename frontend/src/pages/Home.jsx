@@ -130,7 +130,7 @@ const Home = () => {
   const [sort, setSort] = useState("newest");
   const [showFilters, setShowFilters] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState([]);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const fetchJobs = async (showLoader = true) => {
@@ -376,7 +376,7 @@ const Home = () => {
                 >
                   🔍 Browse Jobs
                 </button>
-                {!user && (
+                {!authLoading && !user && (
                   <Link
                     to="/register"
                     style={{
