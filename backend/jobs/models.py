@@ -6,6 +6,7 @@ class Job(models.Model):
     JOB_TYPE_CHOICES = (
         ('full_time', 'Full Time'),
         ('part_time', 'Part Time'),
+        ('causal', 'Casual'),
         ('contract', 'Contract'),
         ('internship', 'Internship'),
         ('remote', 'Remote'),

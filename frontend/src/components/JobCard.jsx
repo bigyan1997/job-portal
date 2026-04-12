@@ -13,6 +13,7 @@ const JobCard = ({ job, bookmarkedIds = [], onBookmarkChange }) => {
   const jobTypeColors = {
     full_time: { bg: "#DCFCE7", text: "#15803D", label: "Full Time" },
     part_time: { bg: "#FEF9C3", text: "#A16207", label: "Part Time" },
+    casual: { bg: "#FEE2E2", text: "#B91C1C", label: "Casual" },
     contract: { bg: "#EDE9FE", text: "#6D28D9", label: "Contract" },
     internship: { bg: "#DBEAFE", text: "#1D4ED8", label: "Internship" },
     remote: { bg: "#CCFBF1", text: "#0F766E", label: "Remote" },

@@ -6,6 +6,7 @@ import api from "../api/axios";
 const JOB_TYPES = [
   { value: "full_time", label: "Full Time" },
   { value: "part_time", label: "Part Time" },
+  { value: "casual", label: "Casual" },
   { value: "contract", label: "Contract" },
   { value: "internship", label: "Internship" },
   { value: "remote", label: "Remote" },
