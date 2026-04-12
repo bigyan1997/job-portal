@@ -21,7 +21,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "What is an AI analysis?",
-    a: "Each time you click 'Analyse my resume' for a job, that counts as one analysis. Pro users get unlimited analyses so you can apply to as many jobs as you want.",
+    a: "Each time you click 'Analyse my resume' for a specific job, that counts as one job analysis. ATS analyses are separate — they check your resume quality independent of any job.",
   },
 ];
 
@@ -113,16 +113,27 @@ const Subscription = () => {
     );
   }
 
-  const analysesPercent = status?.is_pro
+  const jobPercent = status?.is_pro
     ? 100
     : Math.min((status?.ai_analyses_used / status?.free_limit) * 100, 100);
+  const atsPercent = status?.is_pro
+    ? 100
+    : Math.min(((user?.ats_analyses_used || 0) / 2) * 100, 100);
+
+  const nextBillingDate = status?.pro_since
+    ? new Date(
+        new Date(status.pro_since).setMonth(
+          new Date(status.pro_since).getMonth() + 1,
+        ),
+      )
+    : null;
 
   return (
     <div style={{ minHeight: "100vh", background: "#F8F7F4" }}>
       <style>{`
         @media (max-width: 768px) {
           .plans-grid { grid-template-columns: 1fr !important; }
-          .compare-grid { grid-template-columns: 1fr !important; }
+          .benefits-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
 
@@ -157,75 +168,190 @@ const Subscription = () => {
               : "Unlock unlimited AI analyses and get hired faster"}
           </p>
 
-          {/* Usage bar */}
+          {/* ── DUAL USAGE BARS ── */}
           <div
             style={{
               background: "rgba(255,255,255,0.05)",
               border: "1px solid rgba(255,255,255,0.08)",
               borderRadius: "14px",
               padding: "20px 24px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "16px",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: "10px",
-              }}
-            >
-              <p
-                style={{ color: "#94A3B8", fontSize: "13px", fontWeight: 500 }}
-              >
-                AI Analyses Used
-              </p>
-              <p
-                style={{ color: "#F1F5F9", fontSize: "14px", fontWeight: 700 }}
-              >
-                {status?.ai_analyses_used} /{" "}
-                {status?.is_pro ? "∞" : status?.free_limit}
-              </p>
-            </div>
-            <div
-              style={{
-                background: "rgba(255,255,255,0.08)",
-                borderRadius: "999px",
-                height: "8px",
-                overflow: "hidden",
-                marginBottom: "10px",
-              }}
-            >
+            {/* Job Analyses */}
+            <div>
               <div
                 style={{
-                  height: "100%",
-                  borderRadius: "999px",
-                  width: `${analysesPercent}%`,
-                  background: status?.is_pro
-                    ? "linear-gradient(90deg, #22C55E, #16A34A)"
-                    : analysesPercent >= 100
-                      ? "#EF4444"
-                      : analysesPercent >= 66
-                        ? "#EAB308"
-                        : "#3B82F6",
-                  transition: "width 0.5s ease",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  marginBottom: "8px",
                 }}
-              />
+              >
+                <div>
+                  <p
+                    style={{
+                      color: "#94A3B8",
+                      fontSize: "13px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Job AI Analyses
+                  </p>
+                  <p
+                    style={{
+                      color: "#64748B",
+                      fontSize: "11px",
+                      marginTop: "2px",
+                    }}
+                  >
+                    Used when analysing resume against a specific job
+                  </p>
+                </div>
+                <p
+                  style={{
+                    color: "#F1F5F9",
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    flexShrink: 0,
+                    marginLeft: "12px",
+                  }}
+                >
+                  {status?.ai_analyses_used} /{" "}
+                  {status?.is_pro ? "∞" : status?.free_limit}
+                </p>
+              </div>
+              <div
+                style={{
+                  background: "rgba(255,255,255,0.08)",
+                  borderRadius: "999px",
+                  height: "7px",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    borderRadius: "999px",
+                    width: `${jobPercent}%`,
+                    background: status?.is_pro
+                      ? "linear-gradient(90deg, #22C55E, #16A34A)"
+                      : jobPercent >= 100
+                        ? "#EF4444"
+                        : jobPercent >= 66
+                          ? "#EAB308"
+                          : "#3B82F6",
+                    transition: "width 0.5s ease",
+                  }}
+                />
+              </div>
+              {!status?.is_pro && (
+                <p
+                  style={{
+                    color: "#64748B",
+                    fontSize: "11px",
+                    marginTop: "5px",
+                  }}
+                >
+                  {status?.analyses_remaining === 0
+                    ? "❌ All used — upgrade to continue"
+                    : `${status?.analyses_remaining} remaining`}
+                </p>
+              )}
             </div>
-            {status?.is_pro ? (
+
+            <div
+              style={{ height: "1px", background: "rgba(255,255,255,0.06)" }}
+            />
+
+            {/* ATS Analyses */}
+            <div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  marginBottom: "8px",
+                }}
+              >
+                <div>
+                  <p
+                    style={{
+                      color: "#94A3B8",
+                      fontSize: "13px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    ATS Resume Analyses
+                  </p>
+                  <p
+                    style={{
+                      color: "#64748B",
+                      fontSize: "11px",
+                      marginTop: "2px",
+                    }}
+                  >
+                    Used when checking overall resume ATS compatibility
+                  </p>
+                </div>
+                <p
+                  style={{
+                    color: "#F1F5F9",
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    flexShrink: 0,
+                    marginLeft: "12px",
+                  }}
+                >
+                  {user?.ats_analyses_used || 0} / {status?.is_pro ? "∞" : "2"}
+                </p>
+              </div>
+              <div
+                style={{
+                  background: "rgba(255,255,255,0.08)",
+                  borderRadius: "999px",
+                  height: "7px",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    borderRadius: "999px",
+                    width: `${atsPercent}%`,
+                    background: status?.is_pro
+                      ? "linear-gradient(90deg, #22C55E, #16A34A)"
+                      : atsPercent >= 100
+                        ? "#EF4444"
+                        : atsPercent >= 50
+                          ? "#EAB308"
+                          : "#8B5CF6",
+                    transition: "width 0.5s ease",
+                  }}
+                />
+              </div>
+              {!status?.is_pro && (
+                <p
+                  style={{
+                    color: "#64748B",
+                    fontSize: "11px",
+                    marginTop: "5px",
+                  }}
+                >
+                  {(user?.ats_analyses_used || 0) >= 2
+                    ? "❌ All used — upgrade to continue"
+                    : `${2 - (user?.ats_analyses_used || 0)} remaining`}
+                </p>
+              )}
+            </div>
+
+            {status?.is_pro && (
               <p
                 style={{ color: "#22C55E", fontSize: "12px", fontWeight: 500 }}
               >
                 ✅ Pro plan — unlimited AI analyses
-              </p>
-            ) : status?.analyses_remaining === 0 ? (
-              <p style={{ color: "#EF4444", fontSize: "12px" }}>
-                ❌ All free analyses used — upgrade to continue
-              </p>
-            ) : (
-              <p style={{ color: "#64748B", fontSize: "12px" }}>
-                {status?.analyses_remaining} free{" "}
-                {status?.analyses_remaining === 1 ? "analysis" : "analyses"}{" "}
-                remaining
               </p>
             )}
           </div>
@@ -348,11 +474,13 @@ const Subscription = () => {
               style={{ display: "flex", flexDirection: "column", gap: "10px" }}
             >
               {[
-                { text: "3 AI resume analyses", check: true },
+                { text: "3 job AI analyses", check: true },
+                { text: "2 ATS resume analyses", check: true },
                 { text: "Apply to unlimited jobs", check: true },
                 { text: "Cover letter generation", check: true },
                 { text: "Skills gap analysis", check: true },
                 { text: "Unlimited AI analyses", check: false },
+                { text: "Unlimited ATS analyses", check: false },
                 { text: "Priority support", check: false },
               ].map((item, i) => (
                 <div
@@ -452,11 +580,13 @@ const Subscription = () => {
               style={{ display: "flex", flexDirection: "column", gap: "10px" }}
             >
               {[
-                "Unlimited AI resume analyses",
+                "Unlimited job AI analyses",
+                "Unlimited ATS resume analyses",
                 "Apply to unlimited jobs",
                 "Cover letter generation",
                 "Skills gap analysis",
                 "Resume improvement suggestions",
+                "ATS resume score",
                 "Priority support",
               ].map((text, i) => (
                 <div
@@ -491,61 +621,123 @@ const Subscription = () => {
                 borderRadius: "14px",
                 padding: "20px 24px",
                 marginBottom: "12px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
-                gap: "12px",
               }}
             >
-              <div>
-                <p
-                  style={{
-                    color: "#15803D",
-                    fontWeight: 700,
-                    fontSize: "15px",
-                    marginBottom: "4px",
-                  }}
-                >
-                  ✅ You are on the Pro plan
-                </p>
-                <p style={{ color: "#16A34A", fontSize: "13px" }}>
-                  Pro since{" "}
-                  {new Date(status.pro_since).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
-              </div>
               <div
                 style={{
-                  background: "#DCFCE7",
-                  borderRadius: "10px",
-                  padding: "10px 16px",
-                  textAlign: "center",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: "12px",
+                  marginBottom: "16px",
                 }}
               >
-                <p
+                <div>
+                  <p
+                    style={{
+                      color: "#15803D",
+                      fontWeight: 700,
+                      fontSize: "15px",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    ✅ You are on the Pro plan
+                  </p>
+                  <p style={{ color: "#16A34A", fontSize: "13px" }}>
+                    Pro since{" "}
+                    {new Date(status.pro_since).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                </div>
+                <div
                   style={{
-                    color: "#15803D",
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    marginBottom: "2px",
+                    background: "#DCFCE7",
+                    borderRadius: "10px",
+                    padding: "10px 16px",
+                    textAlign: "center",
                   }}
                 >
-                  ANALYSES USED
-                </p>
-                <p
-                  style={{
-                    color: "#15803D",
-                    fontSize: "20px",
-                    fontWeight: 800,
-                  }}
-                >
-                  {status?.ai_analyses_used}
-                </p>
+                  <p
+                    style={{
+                      color: "#15803D",
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      marginBottom: "2px",
+                    }}
+                  >
+                    ANALYSES USED
+                  </p>
+                  <p
+                    style={{
+                      color: "#15803D",
+                      fontSize: "20px",
+                      fontWeight: 800,
+                    }}
+                  >
+                    {status?.ai_analyses_used}
+                  </p>
+                </div>
               </div>
+
+              {nextBillingDate && (
+                <div
+                  style={{
+                    background: "#DCFCE7",
+                    borderRadius: "10px",
+                    padding: "12px 16px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    <span style={{ fontSize: "16px" }}>📅</span>
+                    <div>
+                      <p
+                        style={{
+                          color: "#15803D",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Next billing date
+                      </p>
+                      <p
+                        style={{
+                          color: "#16A34A",
+                          fontSize: "13px",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {nextBillingDate.toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                  <p
+                    style={{
+                      color: "#15803D",
+                      fontSize: "14px",
+                      fontWeight: 700,
+                    }}
+                  >
+                    $14.99
+                  </p>
+                </div>
+              )}
             </div>
             <button
               onClick={handleCancel}
@@ -649,6 +841,7 @@ const Subscription = () => {
               What you unlock with Pro
             </h3>
             <div
+              className="benefits-grid"
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
@@ -658,8 +851,13 @@ const Subscription = () => {
               {[
                 {
                   icon: "🤖",
-                  title: "Unlimited AI Analyses",
+                  title: "Unlimited Job Analyses",
                   desc: "Analyse as many jobs as you want",
+                },
+                {
+                  icon: "📋",
+                  title: "Unlimited ATS Analyses",
+                  desc: "Check your resume quality anytime",
                 },
                 {
                   icon: "✉️",
@@ -675,6 +873,11 @@ const Subscription = () => {
                   icon: "✨",
                   title: "Resume Suggestions",
                   desc: "AI tips to improve your resume",
+                },
+                {
+                  icon: "🎯",
+                  title: "ATS Resume Score",
+                  desc: "Know how ATS systems see your resume",
                 },
               ].map((item, i) => (
                 <div
@@ -790,7 +993,6 @@ const Subscription = () => {
           </div>
         </div>
 
-        {/* ── STRIPE BADGE ── */}
         <p style={{ textAlign: "center", color: "#9CA3AF", fontSize: "12px" }}>
           🔒 Payments securely processed by Stripe
         </p>
