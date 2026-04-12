@@ -153,8 +153,25 @@ class JobListView(APIView):
         elif sort == 'salary_low':
             jobs = jobs.order_by('salary_min')
 
-        serializer = JobSerializer(jobs, many=True)
-        return Response(serializer.data)
+        # Pagination
+        page_size = 12
+        try:
+            page = int(request.query_params.get('page', 1))
+        except ValueError:
+            page = 1
+
+        total = jobs.count()
+        start = (page - 1) * page_size
+        end = start + page_size
+        jobs_page = jobs[start:end]
+
+        serializer = JobSerializer(jobs_page, many=True)
+        return Response({
+            'results': serializer.data,
+            'has_next': end < total,
+            'total': total,
+            'page': page,
+        })
 
     def post(self, request):
         if request.user.role != 'employer':

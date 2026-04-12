@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import JobCard from "../components/JobCard";
@@ -122,39 +122,65 @@ const TESTIMONIALS = [
 const Home = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
+  const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
   const [jobType, setJobType] = useState("");
   const [activeType, setActiveType] = useState("");
   const [location, setLocation] = useState("");
   const [datePosted, setDatePosted] = useState("");
   const [sort, setSort] = useState("newest");
-  const [showFilters, setShowFilters] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState([]);
+  const loaderRef = useRef(null);
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
-  const fetchJobs = async (showLoader = true) => {
-    if (showLoader) setLoading(true);
+  const fetchJobs = async (pageNum = 1, append = false) => {
+    if (pageNum === 1) setLoading(true);
+    else setLoadingMore(true);
     try {
-      const params = {};
+      const params = { page: pageNum };
       if (search) params.search = search;
       if (jobType) params.job_type = jobType;
       if (location) params.location = location;
       if (datePosted) params.date_posted = datePosted;
       if (sort) params.sort = sort;
       const res = await api.get("/jobs/", { params });
-      setJobs(res.data);
+      const { results, has_next, total } = res.data;
+      setJobs((prev) => (append ? [...prev, ...results] : results));
+      setHasNext(has_next);
+      setTotal(total);
+      setPage(pageNum);
     } catch (err) {
       console.error("Failed to fetch jobs", err);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    const delay = setTimeout(() => fetchJobs(false), 400);
+    const delay = setTimeout(() => {
+      setPage(1);
+      fetchJobs(1, false);
+    }, 400);
     return () => clearTimeout(delay);
   }, [search, jobType, location, datePosted, sort]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNext && !loadingMore && !loading) {
+          fetchJobs(page + 1, true);
+        }
+      },
+      { threshold: 0.1 },
+    );
+    if (loaderRef.current) observer.observe(loaderRef.current);
+    return () => observer.disconnect();
+  }, [hasNext, loadingMore, loading, page]);
 
   useEffect(() => {
     const fetchBookmarks = async () => {
@@ -177,6 +203,7 @@ const Home = () => {
     setLocation("");
     setDatePosted("");
     setSort("newest");
+    setPage(1);
   };
 
   const hasActiveFilters =
@@ -1361,10 +1388,13 @@ const Home = () => {
             }}
           >
             <p style={{ color: "#6B7280", fontSize: "14px" }}>
+              Showing{" "}
               <span style={{ color: "#111827", fontWeight: 600 }}>
                 {jobs.length}
               </span>{" "}
-              job{jobs.length !== 1 ? "s" : ""} found
+              of{" "}
+              <span style={{ color: "#111827", fontWeight: 600 }}>{total}</span>{" "}
+              job{total !== 1 ? "s" : ""}
               {search && (
                 <span>
                   {" "}
@@ -1511,6 +1541,56 @@ const Home = () => {
             ))}
           </div>
         )}
+
+        {/* Infinite scroll loader */}
+        <div
+          ref={loaderRef}
+          style={{
+            height: "60px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginTop: "16px",
+          }}
+        >
+          {loadingMore && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                color: "#9CA3AF",
+                fontSize: "13px",
+              }}
+            >
+              <svg
+                className="animate-spin h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"
+                />
+              </svg>
+              Loading more jobs...
+            </div>
+          )}
+          {!loadingMore && !hasNext && jobs.length > 0 && (
+            <p style={{ color: "#D1D5DB", fontSize: "12px" }}>
+              You've seen all {total} jobs 🎉
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
