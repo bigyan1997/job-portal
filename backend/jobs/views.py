@@ -7,7 +7,9 @@ from django.db.models import Q, Count
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
+
 from .models import Job, Application, Bookmark
+from accounts.models import User
 from .serializers import JobSerializer, ApplicationSerializer
 from .ai_service import analyze_resume
 import threading
@@ -133,8 +135,7 @@ class ATSAnalysisView(APIView):
         request.user.ats_score = result.get('ats_score')
         request.user.ats_feedback = result
         request.user.ats_analysed_at = timezone.now()
-        if not request.user.is_pro:
-            request.user.ats_analyses_used += 1
+        request.user.ats_analyses_used += 1
         request.user.save()
 
         return Response({

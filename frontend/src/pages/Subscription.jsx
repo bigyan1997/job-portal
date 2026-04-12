@@ -118,7 +118,7 @@ const Subscription = () => {
     : Math.min((status?.ai_analyses_used / status?.free_limit) * 100, 100);
   const atsPercent = status?.is_pro
     ? 100
-    : Math.min(((user?.ats_analyses_used || 0) / 2) * 100, 100);
+    : Math.min(((status?.ats_analyses_used || 0) / 2) * 100, 100);
 
   const nextBillingDate = status?.pro_since
     ? new Date(
@@ -305,7 +305,8 @@ const Subscription = () => {
                     marginLeft: "12px",
                   }}
                 >
-                  {user?.ats_analyses_used || 0} / {status?.is_pro ? "∞" : "2"}
+                  {status?.ats_analyses_used || 0} /{" "}
+                  {status?.is_pro ? "∞" : "2"}
                 </p>
               </div>
               <div
@@ -340,9 +341,9 @@ const Subscription = () => {
                     marginTop: "5px",
                   }}
                 >
-                  {(user?.ats_analyses_used || 0) >= 2
+                  {(status?.ats_analyses_used || 0) >= 2
                     ? "❌ All used — upgrade to continue"
-                    : `${2 - (user?.ats_analyses_used || 0)} remaining`}
+                    : `${2 - (status?.ats_analyses_used || 0)} remaining`}
                 </p>
               )}
             </div>
@@ -678,7 +679,8 @@ const Subscription = () => {
                       fontWeight: 800,
                     }}
                   >
-                    {status?.ai_analyses_used}
+                    {(status?.ai_analyses_used || 0) +
+                      (status?.ats_analyses_used || 0)}
                   </p>
                 </div>
               </div>

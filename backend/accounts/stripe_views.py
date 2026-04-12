@@ -105,6 +105,7 @@ class SubscriptionStatusView(APIView):
         return Response({
             'is_pro': user.is_pro,
             'ai_analyses_used': user.ai_analyses_used,
+            'ats_analyses_used': user.ats_analyses_used,
             'analyses_remaining': analyses_remaining if not user.is_pro else 'unlimited',
             'free_limit': FREE_ANALYSIS_LIMIT,
             'pro_since': user.pro_since,
