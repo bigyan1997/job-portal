@@ -210,7 +210,12 @@ const Home = () => {
           .steps-grid { grid-template-columns: 1fr !important; }
           .features-grid { grid-template-columns: 1fr !important; }
           .testimonials-grid { grid-template-columns: 1fr !important; }
-          .footer-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+          .footer-grid { grid-template-columns: 1fr !important; gap: 32px !important;
+          }
+          .search-bar { flex-direction: column !important; borderRadius: 12px !important; }
+          .search-bar .divider { width: 100% !important; height: 1px !important; margin: 0 !important; }
+          .search-bar .find-btn { width: 100% !important; padding: 12px !important; borderRadius: 0 0 12px 12px !important; }
+          .jobs-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
 
@@ -1103,6 +1108,7 @@ const Home = () => {
           >
             {/* Combined search bar */}
             <div
+              className="search-bar"
               style={{
                 display: "flex",
                 flex: 1,
@@ -1148,6 +1154,7 @@ const Home = () => {
 
               {/* Divider */}
               <div
+                className="divider"
                 style={{ width: "1px", background: "#E5E7EB", margin: "8px 0" }}
               />
 
@@ -1202,6 +1209,7 @@ const Home = () => {
 
               {/* Search button */}
               <button
+                className="find-btn"
                 onClick={fetchJobs}
                 style={{
                   background: "#2563EB",
@@ -1339,7 +1347,7 @@ const Home = () => {
         style={{
           maxWidth: "1100px",
           margin: "0 auto",
-          padding: "32px 24px",
+          padding: "32px 16px",
           minHeight: "400px",
         }}
       >
@@ -1481,6 +1489,7 @@ const Home = () => {
 
         {!loading && jobs.length > 0 && (
           <div
+            className="jobs-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
