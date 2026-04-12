@@ -25,14 +25,13 @@ const JobSeekerDashboard = () => {
   const [savedJobs, setSavedJobs] = useState([]);
   const [savedLoading, setSavedLoading] = useState(true);
   const [atsData, setAtsData] = useState(null);
-  const [atsLoading, setAtsLoading] = useState(false);
   const [atsAnalysing, setAtsAnalysing] = useState(false);
   const [atsMessage, setAtsMessage] = useState("Analysing your resume...");
+  const [showAtsResults, setShowAtsResults] = useState(false);
 
   const handleATSAnalysis = async () => {
     setAtsAnalysing(true);
     setAtsMessage("Analysing your resume...");
-
     const messages = [
       "Analysing your resume...",
       "Checking ATS compatibility...",
@@ -41,17 +40,16 @@ const JobSeekerDashboard = () => {
       "Checking formatting...",
       "Nearly done...",
     ];
-
     let i = 0;
     const interval = setInterval(() => {
       i++;
       if (i < messages.length) setAtsMessage(messages[i]);
     }, 3000);
-
     try {
       const res = await api.post("/jobs/ats-analysis/");
       clearInterval(interval);
       setAtsData(res.data);
+      setShowAtsResults(false);
       const updatedUser = await api.get("/auth/me/");
       updateUser(updatedUser.data);
     } catch (err) {
@@ -176,6 +174,8 @@ const JobSeekerDashboard = () => {
         )
       : null;
 
+  const atsLimitReached = !user?.is_pro && user?.ats_analyses_used >= 2;
+
   if (loading) {
     return (
       <div
@@ -273,8 +273,6 @@ const JobSeekerDashboard = () => {
               Browse Jobs
             </Link>
           </div>
-
-          {/* Stats */}
           <div
             style={{
               display: "flex",
@@ -325,7 +323,6 @@ const JobSeekerDashboard = () => {
       <div
         style={{ maxWidth: "1100px", margin: "0 auto", padding: "32px 24px" }}
       >
-        {/* Success message */}
         {successMessage && (
           <div
             style={{
@@ -345,7 +342,6 @@ const JobSeekerDashboard = () => {
           </div>
         )}
 
-        {/* Profile completion banner */}
         {!user?.profile_completed && (
           <div
             style={{
@@ -441,7 +437,6 @@ const JobSeekerDashboard = () => {
           </div>
         )}
 
-        {/* Two column grid */}
         <div
           className="dashboard-grid"
           style={{
@@ -451,9 +446,9 @@ const JobSeekerDashboard = () => {
             alignItems: "start",
           }}
         >
-          {/* LEFT COLUMN — Resume + Applications */}
+          {/* LEFT COLUMN */}
           <div>
-            {/* Resume card */}
+            {/* ── 1. RESUME CARD ── */}
             <div
               style={{
                 background: "#fff",
@@ -485,7 +480,6 @@ const JobSeekerDashboard = () => {
                   style={{ flex: 1, height: "1px", background: "#E5E7EB" }}
                 />
               </div>
-
               {resumeSuccess && (
                 <div
                   style={{
@@ -501,7 +495,6 @@ const JobSeekerDashboard = () => {
                   ✅ {resumeSuccess}
                 </div>
               )}
-
               {currentResume ? (
                 <div
                   style={{
@@ -701,81 +694,7 @@ const JobSeekerDashboard = () => {
               )}
             </div>
 
-            {/* Applications section */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                marginBottom: "16px",
-              }}
-            >
-              <p
-                style={{
-                  color: "#111827",
-                  fontSize: "14px",
-                  fontWeight: 700,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                My Applications
-              </p>
-              <div style={{ flex: 1, height: "1px", background: "#E5E7EB" }} />
-              <span
-                style={{
-                  color: "#9CA3AF",
-                  fontSize: "12px",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {applications.length} total
-              </span>
-            </div>
-
-            {/* Empty state */}
-            {applications.length === 0 && (
-              <div
-                style={{
-                  background: "#fff",
-                  borderRadius: "16px",
-                  border: "1px solid #F3F4F6",
-                  padding: "64px 24px",
-                  textAlign: "center",
-                }}
-              >
-                <div style={{ fontSize: "48px", marginBottom: "16px" }}>📋</div>
-                <h3
-                  style={{
-                    color: "#111827",
-                    fontWeight: 600,
-                    marginBottom: "8px",
-                  }}
-                >
-                  No applications yet
-                </h3>
-                <p
-                  style={{
-                    color: "#9CA3AF",
-                    fontSize: "14px",
-                    marginBottom: "20px",
-                  }}
-                >
-                  Start applying to jobs to track your applications here
-                </p>
-                <Link
-                  to="/"
-                  style={{
-                    color: "#2563EB",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    textDecoration: "none",
-                  }}
-                >
-                  Browse open jobs →
-                </Link>
-              </div>
-            )}
-            {/* ATS Score Card */}
+            {/* ── 2. ATS SCORE CARD ── */}
             {currentResume && (
               <div
                 style={{
@@ -820,7 +739,6 @@ const JobSeekerDashboard = () => {
                   )}
                 </div>
 
-                {/* Info note */}
                 <div
                   style={{
                     background: "#F0F9FF",
@@ -874,19 +792,16 @@ const JobSeekerDashboard = () => {
                     </p>
                     <button
                       onClick={handleATSAnalysis}
-                      disabled={
-                        atsAnalysing ||
-                        (!user?.is_pro && user?.ats_analyses_used >= 2)
-                      }
+                      disabled={atsAnalysing || atsLimitReached}
                       style={{
                         background: atsAnalysing
                           ? "#93C5FD"
-                          : !user?.is_pro && user?.ats_analyses_used >= 2
+                          : atsLimitReached
                             ? "#F3F4F6"
                             : "#111827",
                         color: atsAnalysing
                           ? "#fff"
-                          : !user?.is_pro && user?.ats_analyses_used >= 2
+                          : atsLimitReached
                             ? "#9CA3AF"
                             : "#fff",
                         border: "none",
@@ -895,8 +810,7 @@ const JobSeekerDashboard = () => {
                         fontSize: "14px",
                         fontWeight: 600,
                         cursor:
-                          atsAnalysing ||
-                          (!user?.is_pro && user?.ats_analyses_used >= 2)
+                          atsAnalysing || atsLimitReached
                             ? "not-allowed"
                             : "pointer",
                         display: "inline-flex",
@@ -927,7 +841,7 @@ const JobSeekerDashboard = () => {
                           </svg>
                           {atsMessage}
                         </>
-                      ) : !user?.is_pro && user?.ats_analyses_used >= 2 ? (
+                      ) : atsLimitReached ? (
                         "⚡ Upgrade for more analyses"
                       ) : (
                         "🔍 Analyse ATS Score"
@@ -948,78 +862,111 @@ const JobSeekerDashboard = () => {
                   </div>
                 ) : (
                   <div>
-                    {/* Score circle + summary */}
+                    {/* Collapsed summary row */}
                     <div
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: "20px",
-                        marginBottom: "20px",
-                        padding: "16px",
+                        justifyContent: "space-between",
                         background: "#F9FAFB",
                         borderRadius: "12px",
+                        padding: "14px 16px",
+                        marginBottom: "12px",
                       }}
                     >
                       <div
                         style={{
-                          width: "80px",
-                          height: "80px",
-                          borderRadius: "50%",
-                          flexShrink: 0,
-                          border: `5px solid ${atsData.ats_score >= 80 ? "#22C55E" : atsData.ats_score >= 60 ? "#EAB308" : "#EF4444"}`,
                           display: "flex",
-                          flexDirection: "column",
                           alignItems: "center",
-                          justifyContent: "center",
+                          gap: "12px",
                         }}
                       >
-                        <span
+                        <div
                           style={{
-                            fontSize: "20px",
-                            fontWeight: 800,
-                            color:
-                              atsData.ats_score >= 80
-                                ? "#15803D"
-                                : atsData.ats_score >= 60
-                                  ? "#A16207"
-                                  : "#B91C1C",
-                            lineHeight: 1,
+                            width: "48px",
+                            height: "48px",
+                            borderRadius: "50%",
+                            border: `3px solid ${atsData.ats_score >= 80 ? "#22C55E" : atsData.ats_score >= 60 ? "#EAB308" : "#EF4444"}`,
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
                           }}
                         >
-                          {atsData.ats_score}
-                        </span>
-                        <span
-                          style={{
-                            fontSize: "10px",
-                            color: "#9CA3AF",
-                            marginTop: "2px",
-                          }}
-                        >
-                          / 100
-                        </span>
+                          <span
+                            style={{
+                              fontSize: "13px",
+                              fontWeight: 800,
+                              color:
+                                atsData.ats_score >= 80
+                                  ? "#15803D"
+                                  : atsData.ats_score >= 60
+                                    ? "#A16207"
+                                    : "#B91C1C",
+                              lineHeight: 1,
+                            }}
+                          >
+                            {atsData.ats_score}
+                          </span>
+                          <span style={{ fontSize: "9px", color: "#9CA3AF" }}>
+                            / 100
+                          </span>
+                        </div>
+                        <div>
+                          <p
+                            style={{
+                              color: "#111827",
+                              fontWeight: 600,
+                              fontSize: "14px",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            {atsData.ats_score >= 80
+                              ? "🎉 Excellent ATS score!"
+                              : atsData.ats_score >= 60
+                                ? "👍 Good, room to improve"
+                                : "⚠️ Needs improvement"}
+                          </p>
+                          <p style={{ color: "#9CA3AF", fontSize: "11px" }}>
+                            Last analysed{" "}
+                            {new Date(
+                              atsData.ats_analysed_at,
+                            ).toLocaleDateString("en-AU", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })}
+                          </p>
+                        </div>
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <p
-                          style={{
-                            color: "#111827",
-                            fontWeight: 700,
-                            fontSize: "15px",
-                            marginBottom: "6px",
-                          }}
-                        >
-                          {atsData.ats_score >= 80
-                            ? "🎉 Excellent ATS score!"
-                            : atsData.ats_score >= 60
-                              ? "👍 Good, but room to improve"
-                              : "⚠️ Needs improvement"}
-                        </p>
+                      <button
+                        onClick={() => setShowAtsResults(!showAtsResults)}
+                        style={{
+                          background: "none",
+                          border: "1px solid #E5E7EB",
+                          borderRadius: "8px",
+                          padding: "6px 12px",
+                          fontSize: "12px",
+                          fontWeight: 500,
+                          cursor: "pointer",
+                          color: "#6B7280",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {showAtsResults ? "Hide ↑" : "View analysis ↓"}
+                      </button>
+                    </div>
+
+                    {showAtsResults && (
+                      <div>
                         <div
                           style={{
                             background: "#E5E7EB",
                             borderRadius: "999px",
                             height: "8px",
                             overflow: "hidden",
-                            marginBottom: "6px",
+                            marginBottom: "8px",
                           }}
                         >
                           <div
@@ -1036,198 +983,309 @@ const JobSeekerDashboard = () => {
                             }}
                           />
                         </div>
-                        <p style={{ color: "#6B7280", fontSize: "12px" }}>
+                        <p
+                          style={{
+                            color: "#6B7280",
+                            fontSize: "12px",
+                            marginBottom: "16px",
+                          }}
+                        >
                           {atsData.ats_feedback?.summary}
                         </p>
-                      </div>
-                    </div>
 
-                    {/* Breakdown */}
-                    {atsData.ats_feedback?.breakdown && (
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "8px",
-                          marginBottom: "16px",
-                        }}
-                      >
-                        {atsData.ats_feedback.breakdown.map((item, i) => (
+                        {atsData.ats_feedback?.breakdown && (
                           <div
-                            key={i}
                             style={{
                               display: "flex",
-                              alignItems: "flex-start",
-                              gap: "10px",
-                              padding: "10px 12px",
-                              background:
-                                item.status === "good"
-                                  ? "#F0FDF4"
-                                  : item.status === "warning"
-                                    ? "#FEFCE8"
-                                    : "#FEF2F2",
-                              borderRadius: "10px",
+                              flexDirection: "column",
+                              gap: "8px",
+                              marginBottom: "16px",
                             }}
                           >
-                            <span style={{ fontSize: "14px", flexShrink: 0 }}>
-                              {item.status === "good"
-                                ? "✅"
-                                : item.status === "warning"
-                                  ? "⚠️"
-                                  : "❌"}
-                            </span>
-                            <div>
-                              <p
+                            {atsData.ats_feedback.breakdown.map((item, i) => (
+                              <div
+                                key={i}
                                 style={{
-                                  color: "#111827",
-                                  fontSize: "13px",
-                                  fontWeight: 600,
-                                  marginBottom: "2px",
+                                  display: "flex",
+                                  alignItems: "flex-start",
+                                  gap: "10px",
+                                  padding: "10px 12px",
+                                  background:
+                                    item.status === "good"
+                                      ? "#F0FDF4"
+                                      : item.status === "warning"
+                                        ? "#FEFCE8"
+                                        : "#FEF2F2",
+                                  borderRadius: "10px",
                                 }}
                               >
-                                {item.category}
-                              </p>
-                              <p
-                                style={{
-                                  color: "#6B7280",
-                                  fontSize: "12px",
-                                  lineHeight: 1.5,
-                                }}
-                              >
-                                {item.message}
-                              </p>
+                                <span
+                                  style={{ fontSize: "14px", flexShrink: 0 }}
+                                >
+                                  {item.status === "good"
+                                    ? "✅"
+                                    : item.status === "warning"
+                                      ? "⚠️"
+                                      : "❌"}
+                                </span>
+                                <div>
+                                  <p
+                                    style={{
+                                      color: "#111827",
+                                      fontSize: "13px",
+                                      fontWeight: 600,
+                                      marginBottom: "2px",
+                                    }}
+                                  >
+                                    {item.category}
+                                  </p>
+                                  <p
+                                    style={{
+                                      color: "#6B7280",
+                                      fontSize: "12px",
+                                      lineHeight: 1.5,
+                                    }}
+                                  >
+                                    {item.message}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {atsData.ats_feedback?.strengths?.length > 0 && (
+                          <div style={{ marginBottom: "12px" }}>
+                            <p
+                              style={{
+                                color: "#15803D",
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                marginBottom: "8px",
+                                letterSpacing: "0.05em",
+                              }}
+                            >
+                              💪 STRENGTHS
+                            </p>
+                            <div
+                              style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "4px",
+                              }}
+                            >
+                              {atsData.ats_feedback.strengths.map((s, i) => (
+                                <p
+                                  key={i}
+                                  style={{
+                                    color: "#374151",
+                                    fontSize: "13px",
+                                    padding: "6px 10px",
+                                    background: "#F0FDF4",
+                                    borderRadius: "8px",
+                                  }}
+                                >
+                                  • {s}
+                                </p>
+                              ))}
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    )}
+                        )}
 
-                    {/* Strengths */}
-                    {atsData.ats_feedback?.strengths?.length > 0 && (
-                      <div style={{ marginBottom: "12px" }}>
-                        <p
-                          style={{
-                            color: "#15803D",
-                            fontSize: "12px",
-                            fontWeight: 600,
-                            marginBottom: "8px",
-                            letterSpacing: "0.05em",
-                          }}
-                        >
-                          💪 STRENGTHS
-                        </p>
-                        <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "4px",
-                          }}
-                        >
-                          {atsData.ats_feedback.strengths.map((s, i) => (
+                        {atsData.ats_feedback?.top_issues?.length > 0 && (
+                          <div style={{ marginBottom: "16px" }}>
                             <p
-                              key={i}
                               style={{
-                                color: "#374151",
-                                fontSize: "13px",
-                                padding: "6px 10px",
-                                background: "#F0FDF4",
-                                borderRadius: "8px",
+                                color: "#B91C1C",
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                marginBottom: "8px",
+                                letterSpacing: "0.05em",
                               }}
                             >
-                              • {s}
+                              🔧 TOP ISSUES TO FIX
                             </p>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Top issues */}
-                    {atsData.ats_feedback?.top_issues?.length > 0 && (
-                      <div style={{ marginBottom: "16px" }}>
-                        <p
-                          style={{
-                            color: "#B91C1C",
-                            fontSize: "12px",
-                            fontWeight: 600,
-                            marginBottom: "8px",
-                            letterSpacing: "0.05em",
-                          }}
-                        >
-                          🔧 TOP ISSUES TO FIX
-                        </p>
-                        <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "4px",
-                          }}
-                        >
-                          {atsData.ats_feedback.top_issues.map((issue, i) => (
-                            <p
-                              key={i}
+                            <div
                               style={{
-                                color: "#374151",
-                                fontSize: "13px",
-                                padding: "6px 10px",
-                                background: "#FEF2F2",
-                                borderRadius: "8px",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "4px",
                               }}
                             >
-                              • {issue}
-                            </p>
-                          ))}
-                        </div>
+                              {atsData.ats_feedback.top_issues.map(
+                                (issue, i) => (
+                                  <p
+                                    key={i}
+                                    style={{
+                                      color: "#374151",
+                                      fontSize: "13px",
+                                      padding: "6px 10px",
+                                      background: "#FEF2F2",
+                                      borderRadius: "8px",
+                                    }}
+                                  >
+                                    • {issue}
+                                  </p>
+                                ),
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
                     {/* Re-analyse button */}
-                    <div
+                    <button
+                      onClick={handleATSAnalysis}
+                      disabled={atsAnalysing || atsLimitReached}
                       style={{
+                        width: "100%",
+                        marginTop: "8px",
+                        background: atsAnalysing
+                          ? "#93C5FD"
+                          : atsLimitReached
+                            ? "#F3F4F6"
+                            : "#111827",
+                        color: atsAnalysing
+                          ? "#fff"
+                          : atsLimitReached
+                            ? "#9CA3AF"
+                            : "#fff",
+                        border: "none",
+                        borderRadius: "10px",
+                        padding: "11px",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        cursor:
+                          atsAnalysing || atsLimitReached
+                            ? "not-allowed"
+                            : "pointer",
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "space-between",
+                        justifyContent: "center",
+                        gap: "8px",
                       }}
                     >
-                      <p style={{ color: "#9CA3AF", fontSize: "11px" }}>
-                        Last analysed{" "}
-                        {new Date(atsData.ats_analysed_at).toLocaleDateString(
-                          "en-AU",
-                          { month: "short", day: "numeric", year: "numeric" },
-                        )}
-                      </p>
-                      <button
-                        onClick={handleATSAnalysis}
-                        disabled={
-                          atsAnalysing ||
-                          (!user?.is_pro && user?.ats_analyses_used >= 2)
-                        }
+                      {atsAnalysing ? (
+                        <>
+                          <svg
+                            className="animate-spin h-4 w-4"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8v8z"
+                            />
+                          </svg>
+                          {atsMessage}
+                        </>
+                      ) : atsLimitReached ? (
+                        "⚡ Upgrade for more analyses"
+                      ) : (
+                        "🔄 Re-analyse Resume"
+                      )}
+                    </button>
+                    {atsAnalysing && (
+                      <p
                         style={{
-                          color:
-                            !user?.is_pro && user?.ats_analyses_used >= 2
-                              ? "#9CA3AF"
-                              : "#2563EB",
+                          textAlign: "center",
+                          color: "#9CA3AF",
                           fontSize: "12px",
-                          background: "none",
-                          border: "none",
-                          cursor:
-                            !user?.is_pro && user?.ats_analyses_used >= 2
-                              ? "not-allowed"
-                              : "pointer",
-                          fontWeight: 500,
+                          marginTop: "8px",
                         }}
                       >
-                        {atsAnalysing
-                          ? "Analysing..."
-                          : !user?.is_pro && user?.ats_analyses_used >= 2
-                            ? "No analyses left"
-                            : "Re-analyse →"}
-                      </button>
-                    </div>
+                        This usually takes 15–30 seconds. Please don't refresh.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
             )}
-            {/* Applications list */}
+
+            {/* ── 3. APPLICATIONS SECTION ── */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                marginBottom: "16px",
+              }}
+            >
+              <p
+                style={{
+                  color: "#111827",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                My Applications
+              </p>
+              <div style={{ flex: 1, height: "1px", background: "#E5E7EB" }} />
+              <span
+                style={{
+                  color: "#9CA3AF",
+                  fontSize: "12px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {applications.length} total
+              </span>
+            </div>
+
+            {applications.length === 0 && (
+              <div
+                style={{
+                  background: "#fff",
+                  borderRadius: "16px",
+                  border: "1px solid #F3F4F6",
+                  padding: "64px 24px",
+                  textAlign: "center",
+                }}
+              >
+                <div style={{ fontSize: "48px", marginBottom: "16px" }}>📋</div>
+                <h3
+                  style={{
+                    color: "#111827",
+                    fontWeight: 600,
+                    marginBottom: "8px",
+                  }}
+                >
+                  No applications yet
+                </h3>
+                <p
+                  style={{
+                    color: "#9CA3AF",
+                    fontSize: "14px",
+                    marginBottom: "20px",
+                  }}
+                >
+                  Start applying to jobs to track your applications here
+                </p>
+                <Link
+                  to="/"
+                  style={{
+                    color: "#2563EB",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    textDecoration: "none",
+                  }}
+                >
+                  Browse open jobs →
+                </Link>
+              </div>
+            )}
+
             <div
               style={{ display: "flex", flexDirection: "column", gap: "12px" }}
             >
@@ -1307,7 +1365,6 @@ const JobSeekerDashboard = () => {
                             )}
                           </p>
                         </div>
-
                         {app.match_score !== null ? (
                           <div
                             style={{
@@ -1713,11 +1770,9 @@ const JobSeekerDashboard = () => {
                   {savedJobs.length} saved
                 </span>
               </div>
-
               {savedLoading && (
                 <p style={{ color: "#9CA3AF", fontSize: "13px" }}>Loading...</p>
               )}
-
               {!savedLoading && savedJobs.length === 0 && (
                 <div style={{ textAlign: "center", padding: "24px" }}>
                   <div style={{ fontSize: "32px", marginBottom: "8px" }}>
@@ -1737,7 +1792,6 @@ const JobSeekerDashboard = () => {
                   </p>
                 </div>
               )}
-
               <div
                 style={{ display: "flex", flexDirection: "column", gap: "8px" }}
               >
