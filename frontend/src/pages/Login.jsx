@@ -37,6 +37,8 @@ const Login = () => {
       } else {
         setError(err.response?.data?.error || "Something went wrong");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -327,7 +329,33 @@ const Login = () => {
                 e.currentTarget.style.opacity = "1";
               }}
             >
-              {loading ? "Signing in..." : "Sign in →"}
+              {loading ? (
+                <>
+                  <svg
+                    className="animate-spin h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    style={{ display: "inline", marginRight: "6px" }}
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    />
+                  </svg>
+                  Signing in...
+                </>
+              ) : (
+                "Sign in →"
+              )}
             </button>
           </form>
 
