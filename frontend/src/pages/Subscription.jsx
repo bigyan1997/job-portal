@@ -69,6 +69,8 @@ const Subscription = () => {
     setCancelLoading(true);
     try {
       await api.post("/auth/subscription/cancel/");
+      const res = await api.get("/auth/subscription/");
+      setStatus({ ...res.data, cancel_at_period_end: true });
       alert(
         "Subscription cancelled. You will keep Pro access until the end of your billing period.",
       );
@@ -741,24 +743,47 @@ const Subscription = () => {
                 </div>
               )}
             </div>
-            <button
-              onClick={handleCancel}
-              disabled={cancelLoading}
-              style={{
-                width: "100%",
-                border: "1px solid #FECACA",
-                background: "#fff",
-                color: "#EF4444",
-                borderRadius: "12px",
-                padding: "13px",
-                fontSize: "14px",
-                fontWeight: 600,
-                cursor: cancelLoading ? "not-allowed" : "pointer",
-                opacity: cancelLoading ? 0.6 : 1,
-              }}
-            >
-              {cancelLoading ? "Cancelling..." : "Cancel Subscription"}
-            </button>
+            {status?.cancel_at_period_end ? (
+              <div
+                style={{
+                  background: "#FEF9C3",
+                  border: "1px solid #FDE68A",
+                  borderRadius: "12px",
+                  padding: "13px",
+                  textAlign: "center",
+                }}
+              >
+                <p
+                  style={{
+                    color: "#A16207",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                  }}
+                >
+                  ⚠️ Cancellation scheduled — you keep Pro until end of billing
+                  period
+                </p>
+              </div>
+            ) : (
+              <button
+                onClick={handleCancel}
+                disabled={cancelLoading}
+                style={{
+                  width: "100%",
+                  border: "1px solid #FECACA",
+                  background: "#fff",
+                  color: "#EF4444",
+                  borderRadius: "12px",
+                  padding: "13px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  cursor: cancelLoading ? "not-allowed" : "pointer",
+                  opacity: cancelLoading ? 0.6 : 1,
+                }}
+              >
+                {cancelLoading ? "Cancelling..." : "Cancel Subscription"}
+              </button>
+            )}
           </div>
         ) : (
           <div style={{ marginBottom: "32px" }}>

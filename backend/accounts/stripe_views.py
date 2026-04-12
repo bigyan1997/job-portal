@@ -181,4 +181,31 @@ class StripeWebhookView(APIView):
             except User.DoesNotExist:
                 print(f"No user found with subscription {subscription_id}")
 
+        elif event['type'] == 'customer.subscription.updated':
+            subscription = event['data']['object']
+            try:
+                subscription_id = subscription['id']
+            except (KeyError, TypeError):
+                subscription_id = None
+            try:
+                cancel_at_period_end = subscription['cancel_at_period_end']
+            except (KeyError, TypeError):
+                cancel_at_period_end = False
+            try:
+                sub_status = subscription['status']
+            except (KeyError, TypeError):
+                sub_status = None
+            print(f"Subscription updated: {subscription_id}, cancel_at_period_end: {cancel_at_period_end}, status: {sub_status}")
+            # If subscription is being cancelled at period end, we keep Pro for now
+            # It will be downgraded when customer.subscription.deleted fires
+            if sub_status == 'canceled':
+                try:
+                    user = User.objects.get(stripe_subscription_id=subscription_id)
+                    user.is_pro = False
+                    user.stripe_subscription_id = ''
+                    user.save()
+                    print(f"User {user.email} downgraded from Pro via subscription.updated")
+                except User.DoesNotExist:
+                    print(f"No user found with subscription {subscription_id}")
+
         return Response({'status': 'ok'})
