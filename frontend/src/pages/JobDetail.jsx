@@ -28,6 +28,7 @@ const JobDetail = () => {
   }, [user]);
 
   useEffect(() => {
+    if (!id) return;
     const fetchJob = async () => {
       try {
         const res = await api.get(`/jobs/${id}/`);
