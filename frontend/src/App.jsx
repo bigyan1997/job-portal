@@ -1,9 +1,7 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import PageTransition from "./components/PageTransition";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import ForEmployers from "./pages/ForEmployers";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import Home from "./pages/Home";
@@ -26,12 +24,13 @@ import NotFound from "./pages/404";
 import Subscription from "./pages/Subscription";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import SubscriptionCancel from "./pages/SubscriptionCancel";
+import ForEmployers from "./pages/ForEmployers";
 
-const AnimatedRoutes = () => {
-  const location = useLocation();
+function App() {
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
+    <BrowserRouter>
+      <Navbar />
+      <Routes>
         <Route
           path="/"
           element={
@@ -93,6 +92,14 @@ const AnimatedRoutes = () => {
           element={
             <PageTransition>
               <JobDetail />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/for-employers"
+          element={
+            <PageTransition>
+              <ForEmployers />
             </PageTransition>
           }
         />
@@ -210,24 +217,7 @@ const AnimatedRoutes = () => {
             </PageTransition>
           }
         />
-        <Route
-          path="/for-employers"
-          element={
-            <PageTransition>
-              <ForEmployers />
-            </PageTransition>
-          }
-        />
       </Routes>
-    </AnimatePresence>
-  );
-};
-
-function App() {
-  return (
-    <BrowserRouter>
-      <Navbar />
-      <AnimatedRoutes />
       <Footer />
     </BrowserRouter>
   );

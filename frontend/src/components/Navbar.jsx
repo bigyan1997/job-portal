@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -276,7 +276,7 @@ const Navbar = () => {
           className="nav-desktop"
           style={{ alignItems: "center", gap: "12px" }}
         >
-          {!user && (
+          {!loading && !user && (
             <>
               <Link
                 to="/login"
@@ -349,7 +349,17 @@ const Navbar = () => {
               + Post a Job
             </Link>
           )}
-
+          {loading && (
+            <div
+              style={{
+                width: "34px",
+                height: "34px",
+                borderRadius: "50%",
+                background: "#F3F4F6",
+                animation: "pulse 1.5s infinite",
+              }}
+            />
+          )}
           {/* Avatar dropdown */}
           {user && (
             <div style={{ position: "relative" }}>
@@ -711,8 +721,8 @@ const Navbar = () => {
                 to: "/employer/post",
                 label: "➕ Post a Job",
               },
-              !user && { to: "/login", label: "🔑 Log in" },
-              !user && { to: "/register", label: "🚀 Get Started" },
+              !loading && !user && { to: "/login", label: "🔑 Log in" },
+              !loading && !user && { to: "/register", label: "🚀 Get Started" },
             ]
               .filter(Boolean)
               .map((item) => (
