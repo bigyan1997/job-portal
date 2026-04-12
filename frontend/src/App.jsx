@@ -3,6 +3,7 @@ import { AnimatePresence } from "framer-motion";
 import PageTransition from "./components/PageTransition";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import ForEmployers from "./pages/ForEmployers";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import Home from "./pages/Home";
@@ -206,6 +207,14 @@ const AnimatedRoutes = () => {
           element={
             <PageTransition>
               <NotFound />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/for-employers"
+          element={
+            <PageTransition>
+              <ForEmployers />
             </PageTransition>
           }
         />

@@ -204,7 +204,7 @@ const Footer = () => {
                 Want to post a job and find the perfect candidate using AI?
               </p>
               <Link
-                to="/register"
+                to="/for-employers"
                 style={{
                   display: "inline-block",
                   background: "#2563EB",
