@@ -4,8 +4,8 @@ from .models import User
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ['email', 'full_name', 'role', 'phone', 'city', 'country', 'is_active', 'date_joined']
-    list_filter = ['role', 'is_staff', 'is_active', 'country']
+    list_display = ['email', 'full_name', 'role', 'is_pro', 'ai_analyses_used', 'ats_analyses_used', 'is_active', 'date_joined']
+    list_filter = ['role', 'is_pro', 'is_staff', 'is_active', 'country']
     search_fields = ['email', 'full_name', 'phone', 'city']
 
     fieldsets = (
@@ -27,6 +27,10 @@ class UserAdmin(BaseUserAdmin):
         ('Role', {'fields': ('role',)}),
 
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
+
+        ('Subscription', {'fields': ('is_pro', 'pro_since', 'stripe_customer_id', 'stripe_subscription_id')}),
+
+        ('AI Usage', {'fields': ('ai_analyses_used', 'ats_analyses_used', 'ats_score', 'ats_analysed_at')}),
     )
 
     add_fieldsets = (

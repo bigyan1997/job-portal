@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib import admin
-from .models import Job, Application
+from .models import Job, Application, Bookmark
 from accounts.models import User
 
 
@@ -40,3 +40,8 @@ class ApplicationAdmin(admin.ModelAdmin):
     list_display = ['applicant', 'job', 'status', 'match_score', 'applied_at']
     list_filter = ['status']
     search_fields = ['applicant__email', 'job__title']
+
+@admin.register(Bookmark)
+class BookmarkAdmin(admin.ModelAdmin):
+    list_display = ['user', 'job', 'created_at']
+    ordering = ['-created_at']
