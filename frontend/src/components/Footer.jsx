@@ -68,91 +68,200 @@ const Footer = () => {
           </div>
 
           {/* For Job Seekers */}
-          <div>
-            <p
-              style={{
-                color: "#F1F5F9",
-                fontSize: "13px",
-                fontWeight: 600,
-                marginBottom: "16px",
-                letterSpacing: "0.04em",
-              }}
-            >
-              FOR JOB SEEKERS
-            </p>
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "10px" }}
-            >
-              {[
-                { label: "Browse Jobs", to: "/" },
-                { label: "My Dashboard", to: "/dashboard" },
-                { label: "Saved Jobs", to: "/dashboard" },
-                { label: "Upgrade to Pro", to: "/subscription" },
-              ].map((link) => (
-                <Link
-                  key={link.label}
-                  to={link.to}
-                  style={{
-                    color: "#475569",
-                    fontSize: "14px",
-                    textDecoration: "none",
-                    transition: "color 0.15s",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.color = "#94A3B8")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.color = "#475569")
-                  }
-                >
-                  {link.label}
-                </Link>
-              ))}
+          {(!user || user.role === "jobseeker") && (
+            <div>
+              <p
+                style={{
+                  color: "#F1F5F9",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  marginBottom: "16px",
+                  letterSpacing: "0.04em",
+                }}
+              >
+                FOR JOB SEEKERS
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
+                {[
+                  { label: "Browse Jobs", to: "/" },
+                  user && { label: "My Dashboard", to: "/dashboard" },
+                  user && { label: "Saved Jobs", to: "/dashboard" },
+                  user && { label: "Upgrade to Pro", to: "/subscription" },
+                ]
+                  .filter(Boolean)
+                  .map((link) => (
+                    <Link
+                      key={link.label}
+                      to={link.to}
+                      style={{
+                        color: "#475569",
+                        fontSize: "14px",
+                        textDecoration: "none",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.color = "#94A3B8")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.color = "#475569")
+                      }
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* For Employers */}
-          <div>
-            <p
-              style={{
-                color: "#F1F5F9",
-                fontSize: "13px",
-                fontWeight: 600,
-                marginBottom: "16px",
-                letterSpacing: "0.04em",
-              }}
-            >
-              FOR EMPLOYERS
-            </p>
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "10px" }}
-            >
-              {[
-                { label: "Post a Job", to: "/employer/post" },
-                { label: "My Jobs", to: "/employer" },
-                { label: "View Applicants", to: "/employer" },
-              ].map((link) => (
-                <Link
-                  key={link.label}
-                  to={link.to}
-                  style={{
-                    color: "#475569",
-                    fontSize: "14px",
-                    textDecoration: "none",
-                    transition: "color 0.15s",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.color = "#94A3B8")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.color = "#475569")
-                  }
-                >
-                  {link.label}
-                </Link>
-              ))}
+          {(!user || user.role === "employer") && (
+            <div>
+              <p
+                style={{
+                  color: "#F1F5F9",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  marginBottom: "16px",
+                  letterSpacing: "0.04em",
+                }}
+              >
+                FOR EMPLOYERS
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
+                {[
+                  user?.role === "employer" && {
+                    label: "Post a Job",
+                    to: "/employer/post",
+                  },
+                  user?.role === "employer" && {
+                    label: "My Jobs",
+                    to: "/employer",
+                  },
+                  user?.role === "employer" && {
+                    label: "View Applicants",
+                    to: "/employer",
+                  },
+                  !user && { label: "Post a Job", to: "/register" },
+                  !user && { label: "Find Candidates", to: "/register" },
+                ]
+                  .filter(Boolean)
+                  .map((link) => (
+                    <Link
+                      key={link.label}
+                      to={link.to}
+                      style={{
+                        color: "#475569",
+                        fontSize: "14px",
+                        textDecoration: "none",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.color = "#94A3B8")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.color = "#475569")
+                      }
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Cross-role CTA */}
+          {user?.role === "jobseeker" && (
+            <div>
+              <p
+                style={{
+                  color: "#F1F5F9",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  marginBottom: "16px",
+                  letterSpacing: "0.04em",
+                }}
+              >
+                FOR EMPLOYERS
+              </p>
+              <p
+                style={{
+                  color: "#475569",
+                  fontSize: "13px",
+                  lineHeight: 1.6,
+                  marginBottom: "12px",
+                }}
+              >
+                Want to post a job and find the perfect candidate using AI?
+              </p>
+              <Link
+                to="/register"
+                style={{
+                  display: "inline-block",
+                  background: "#2563EB",
+                  color: "#fff",
+                  padding: "9px 18px",
+                  borderRadius: "8px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                }}
+              >
+                Post a Job →
+              </Link>
+            </div>
+          )}
+
+          {user?.role === "employer" && (
+            <div>
+              <p
+                style={{
+                  color: "#F1F5F9",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  marginBottom: "16px",
+                  letterSpacing: "0.04em",
+                }}
+              >
+                FOR JOB SEEKERS
+              </p>
+              <p
+                style={{
+                  color: "#475569",
+                  fontSize: "13px",
+                  lineHeight: 1.6,
+                  marginBottom: "12px",
+                }}
+              >
+                Looking for your next opportunity? Let AI match you to the
+                perfect role.
+              </p>
+              <Link
+                to="/register"
+                style={{
+                  display: "inline-block",
+                  background: "#2563EB",
+                  color: "#fff",
+                  padding: "9px 18px",
+                  borderRadius: "8px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                }}
+              >
+                Find Jobs →
+              </Link>
+            </div>
+          )}
 
           {/* Account */}
           <div>

@@ -1,4 +1,6 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
+import PageTransition from "./components/PageTransition";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -20,40 +22,96 @@ import PostJob from "./pages/PostJob";
 import EditJob from "./pages/EditJob";
 import Messages from "./pages/Messages";
 import NotFound from "./pages/404";
-
 import Subscription from "./pages/Subscription";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import SubscriptionCancel from "./pages/SubscriptionCancel";
 
-function App() {
+const AnimatedRoutes = () => {
+  const location = useLocation();
   return (
-    <BrowserRouter>
-      <Navbar />
-      <Routes>
-        {/* public routes — anyone can see */}
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/verify-email/:token" element={<VerifyEmail />} />
-        <Route path="/check-email" element={<CheckEmail />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/jobs/:id" element={<JobDetail />} />
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route
+          path="/"
+          element={
+            <PageTransition>
+              <Home />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <PageTransition>
+              <Login />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PageTransition>
+              <Register />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/verify-email/:token"
+          element={
+            <PageTransition>
+              <VerifyEmail />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/check-email"
+          element={
+            <PageTransition>
+              <CheckEmail />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <PageTransition>
+              <ForgotPassword />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/reset-password/:token"
+          element={
+            <PageTransition>
+              <ResetPassword />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/jobs/:id"
+          element={
+            <PageTransition>
+              <JobDetail />
+            </PageTransition>
+          }
+        />
         <Route
           path="/profile"
           element={
             <ProtectedRoute>
-              <Profile />
+              <PageTransition>
+                <Profile />
+              </PageTransition>
             </ProtectedRoute>
           }
         />
-
-        {/* jobseeker only routes */}
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute allowedRoles={["jobseeker"]}>
-              <JobSeekerDashboard />
+              <PageTransition>
+                <JobSeekerDashboard />
+              </PageTransition>
             </ProtectedRoute>
           }
         />
@@ -61,17 +119,19 @@ function App() {
           path="/apply/:id"
           element={
             <ProtectedRoute allowedRoles={["jobseeker"]}>
-              <Apply />
+              <PageTransition>
+                <Apply />
+              </PageTransition>
             </ProtectedRoute>
           }
         />
-
-        {/* employer only routes */}
         <Route
           path="/employer"
           element={
             <ProtectedRoute allowedRoles={["employer"]}>
-              <EmployerDashboard />
+              <PageTransition>
+                <EmployerDashboard />
+              </PageTransition>
             </ProtectedRoute>
           }
         />
@@ -79,16 +139,19 @@ function App() {
           path="/employer/post"
           element={
             <ProtectedRoute allowedRoles={["employer"]}>
-              <PostJob />
+              <PageTransition>
+                <PostJob />
+              </PageTransition>
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/employer/edit/:id"
           element={
             <ProtectedRoute allowedRoles={["employer"]}>
-              <EditJob />
+              <PageTransition>
+                <EditJob />
+              </PageTransition>
             </ProtectedRoute>
           }
         />
@@ -96,7 +159,9 @@ function App() {
           path="/employer/jobs/:id"
           element={
             <ProtectedRoute allowedRoles={["employer"]}>
-              <EmployerJobDetail />
+              <PageTransition>
+                <EmployerJobDetail />
+              </PageTransition>
             </ProtectedRoute>
           }
         />
@@ -104,7 +169,9 @@ function App() {
           path="/messages"
           element={
             <ProtectedRoute>
-              <Messages />
+              <PageTransition>
+                <Messages />
+              </PageTransition>
             </ProtectedRoute>
           }
         />
@@ -112,16 +179,46 @@ function App() {
           path="/subscription"
           element={
             <ProtectedRoute allowedRoles={["jobseeker"]}>
-              <Subscription />
+              <PageTransition>
+                <Subscription />
+              </PageTransition>
             </ProtectedRoute>
           }
         />
-        <Route path="/subscription/success" element={<SubscriptionSuccess />} />
-        <Route path="/subscription/cancel" element={<SubscriptionCancel />} />
-
-        {/* 404 */}
-        <Route path="*" element={<NotFound />} />
+        <Route
+          path="/subscription/success"
+          element={
+            <PageTransition>
+              <SubscriptionSuccess />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/subscription/cancel"
+          element={
+            <PageTransition>
+              <SubscriptionCancel />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="*"
+          element={
+            <PageTransition>
+              <NotFound />
+            </PageTransition>
+          }
+        />
       </Routes>
+    </AnimatePresence>
+  );
+};
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Navbar />
+      <AnimatedRoutes />
       <Footer />
     </BrowserRouter>
   );
