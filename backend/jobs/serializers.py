@@ -7,6 +7,9 @@ class JobSerializer(serializers.ModelSerializer):
     employer_id = serializers.IntegerField(source='employer.id', read_only=True)
     application_count = serializers.SerializerMethodField()
     is_expired = serializers.BooleanField(read_only=True)
+    job_type = serializers.ChoiceField(choices=[
+        'full_time', 'part_time', 'casual', 'contract', 'internship', 'remote'
+    ])
 
     class Meta:
         model = Job

@@ -49,6 +49,7 @@ const PostJob = () => {
       await api.post("/jobs/", payload);
       navigate("/employer", { state: { message: "Job posted successfully!" } });
     } catch (err) {
+      console.log("Post job error:", err.response?.data);
       setError(err.response?.data?.detail || "Failed to post job");
     } finally {
       setLoading(false);
