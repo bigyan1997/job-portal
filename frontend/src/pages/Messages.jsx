@@ -7,16 +7,16 @@ const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8000";
 const STATIC_STYLES = `
   @media (max-width: 768px) {
     .messages-container { height: calc(100vh - 160px) !important; padding: 12px !important; }
-    .messages-sidebar { display: none !important; }
-    .messages-chat { display: none !important; }
-    .mobile-sidebar { display: flex !important; }
-    .mobile-chat { display: flex !important; }
+    .messages-desktop { display: none !important; }
+    .mobile-sidebar { display: flex !important; flex-direction: column; height: 100%; }
+    .mobile-chat { display: flex !important; flex-direction: column; height: 100%; }
     .mobile-back-btn { display: block !important; }
   }
   @media (min-width: 769px) {
     .mobile-sidebar { display: none !important; }
     .mobile-chat { display: none !important; }
     .mobile-back-btn { display: none !important; }
+    .messages-desktop { display: grid !important; }
   }
 `;
 
@@ -34,7 +34,12 @@ const formatDate = (dateStr) => {
   return date.toLocaleDateString("en-AU", { month: "short", day: "numeric" });
 };
 
-const ConversationList = ({ loading, conversations, activeConv, onSelectConv }) => (
+const ConversationList = ({
+  loading,
+  conversations,
+  activeConv,
+  onSelectConv,
+}) => (
   <div
     style={{
       background: "#fff",
@@ -359,9 +364,7 @@ const ChatWindow = ({
               activeConv.other_participant?.email?.[0]?.toUpperCase()}
           </div>
           <div>
-            <p
-              style={{ color: "#111827", fontWeight: 600, fontSize: "14px" }}
-            >
+            <p style={{ color: "#111827", fontWeight: 600, fontSize: "14px" }}>
               {activeConv.other_participant?.full_name ||
                 activeConv.other_participant?.email}
             </p>
@@ -680,7 +683,7 @@ const Messages = () => {
         {!showChat ? (
           <div
             className="mobile-sidebar"
-            style={{ height: "100%", display: "none", flexDirection: "column" }}
+            style={{ height: "100%", flexDirection: "column" }}
           >
             <ConversationList
               loading={loading}
@@ -692,7 +695,7 @@ const Messages = () => {
         ) : (
           <div
             className="mobile-chat"
-            style={{ height: "100%", display: "none", flexDirection: "column" }}
+            style={{ height: "100%", flexDirection: "column" }}
           >
             <ChatWindow
               activeConv={activeConv}
