@@ -102,6 +102,17 @@ class SubscriptionStatusView(APIView):
         user = request.user
         analyses_remaining = max(0, FREE_ANALYSIS_LIMIT - user.ai_analyses_used)
 
+        cancel_at_period_end = False
+        if user.is_pro and user.stripe_subscription_id:
+            try:
+                subscription = stripe.Subscription.retrieve(user.stripe_subscription_id)
+                try:
+                    cancel_at_period_end = subscription['cancel_at_period_end']
+                except (KeyError, TypeError):
+                    cancel_at_period_end = False
+            except Exception as e:
+                print(f"Could not retrieve subscription: {e}")
+
         return Response({
             'is_pro': user.is_pro,
             'ai_analyses_used': user.ai_analyses_used,
@@ -109,6 +120,7 @@ class SubscriptionStatusView(APIView):
             'analyses_remaining': analyses_remaining if not user.is_pro else 'unlimited',
             'free_limit': FREE_ANALYSIS_LIMIT,
             'pro_since': user.pro_since,
+            'cancel_at_period_end': cancel_at_period_end,
         })
 
 

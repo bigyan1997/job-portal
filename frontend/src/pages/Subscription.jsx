@@ -70,7 +70,7 @@ const Subscription = () => {
     try {
       await api.post("/auth/subscription/cancel/");
       const res = await api.get("/auth/subscription/");
-      setStatus({ ...res.data, cancel_at_period_end: true });
+      setStatus(res.data);
       alert(
         "Subscription cancelled. You will keep Pro access until the end of your billing period.",
       );
@@ -687,7 +687,7 @@ const Subscription = () => {
                 </div>
               </div>
 
-              {nextBillingDate && (
+              {nextBillingDate && !status?.cancel_at_period_end && (
                 <div
                   style={{
                     background: "#DCFCE7",
@@ -742,6 +742,44 @@ const Subscription = () => {
                   </p>
                 </div>
               )}
+              {nextBillingDate && status?.cancel_at_period_end && (
+                <div
+                  style={{
+                    background: "#FEF9C3",
+                    borderRadius: "10px",
+                    padding: "12px 16px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <span style={{ fontSize: "16px" }}>⏳</span>
+                  <div>
+                    <p
+                      style={{
+                        color: "#A16207",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Pro access ends
+                    </p>
+                    <p
+                      style={{
+                        color: "#A16207",
+                        fontSize: "13px",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {nextBillingDate.toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
             {status?.cancel_at_period_end ? (
               <div
@@ -787,6 +825,38 @@ const Subscription = () => {
           </div>
         ) : (
           <div style={{ marginBottom: "32px" }}>
+            {!status?.is_pro && status?.pro_since && (
+              <div
+                style={{
+                  background: "#FEF2F2",
+                  border: "1px solid #FECACA",
+                  borderRadius: "12px",
+                  padding: "14px 18px",
+                  marginBottom: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                }}
+              >
+                <span style={{ fontSize: "18px" }}>😔</span>
+                <div>
+                  <p
+                    style={{
+                      color: "#B91C1C",
+                      fontWeight: 600,
+                      fontSize: "14px",
+                      marginBottom: "2px",
+                    }}
+                  >
+                    Your Pro subscription has ended
+                  </p>
+                  <p style={{ color: "#EF4444", fontSize: "12px" }}>
+                    Upgrade again to get unlimited AI analyses and all Pro
+                    features.
+                  </p>
+                </div>
+              </div>
+            )}
             <button
               onClick={handleUpgrade}
               disabled={checkoutLoading}
