@@ -1376,7 +1376,7 @@ const JobDetail = () => {
                                       fontSize: "11px",
                                       fontWeight: 700,
                                       padding: "3px 10px",
-                                      borderRadius: "999px",
+                                      borderRadius: "8px",
                                       display: "inline-block",
                                       marginBottom: "6px",
                                     }}
