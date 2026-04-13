@@ -1368,14 +1368,7 @@ const JobDetail = () => {
                                   padding: "16px",
                                 }}
                               >
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "space-between",
-                                    marginBottom: "8px",
-                                  }}
-                                >
+                                <div style={{ marginBottom: "8px" }}>
                                   <span
                                     style={{
                                       background: "#EDE9FE",
@@ -1384,18 +1377,21 @@ const JobDetail = () => {
                                       fontWeight: 700,
                                       padding: "3px 10px",
                                       borderRadius: "999px",
+                                      display: "inline-block",
+                                      marginBottom: "6px",
                                     }}
                                   >
                                     {s.skill}
                                   </span>
-                                  <span
+                                  <p
                                     style={{
                                       color: "#9CA3AF",
                                       fontSize: "11px",
+                                      margin: 0,
                                     }}
                                   >
-                                    📍 {s.where_to_add}
-                                  </span>
+                                    📍 Add to: {s.where_to_add}
+                                  </p>
                                 </div>
                                 <p
                                   style={{
